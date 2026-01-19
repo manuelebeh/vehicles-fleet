@@ -52,8 +52,6 @@ return new class extends Migration
 
         // Indexes
         Schema::table('reservations', function (Blueprint $table) {
-            $table->index('user_id', 'idx_reservations_user');
-            $table->index('vehicle_id', 'idx_reservations_vehicle');
             $table->index(['user_id', 'status'], 'idx_reservations_user_status');
             $table->index('status', 'idx_reservations_status');
             $table->index(['vehicle_id', 'start_date', 'end_date'], 'idx_reservations_dates');

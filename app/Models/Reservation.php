@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -74,7 +75,7 @@ class Reservation extends Model
      * @param  \Carbon\Carbon  $endDate
      * @return bool
      */
-    public function overlaps($startDate, $endDate): bool
+    public function overlaps(Carbon $startDate, Carbon $endDate): bool
     {
         return $this->start_date < $endDate && $this->end_date > $startDate;
     }
