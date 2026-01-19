@@ -18,10 +18,6 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->timestamps();
         });
-
-        Schema::table('roles', function (Blueprint $table) {
-            $table->index('name', 'idx_roles_name');
-        });
     }
 
     /**
