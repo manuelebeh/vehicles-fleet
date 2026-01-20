@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use OpenApi\Attributes as OA;
 
 class AuthController extends Controller
 {
@@ -17,6 +18,35 @@ class AuthController extends Controller
     ) {
     }
 
+    #[OA\Post(
+        path: "/auth/login",
+        summary: "Connexion utilisateur",
+        tags: ["Authentication"],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["email", "password"],
+                properties: [
+                    new OA\Property(property: "email", type: "string", format: "email", example: "user@example.com"),
+                    new OA\Property(property: "password", type: "string", format: "password", example: "password123"),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Connexion réussie",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "user", type: "object"),
+                        new OA\Property(property: "token", type: "string", example: "1|xxxxxxxxxxxx"),
+                    ]
+                )
+            ),
+            new OA\Response(response: 401, description: "Identifiants invalides"),
+            new OA\Response(response: 422, description: "Erreur de validation"),
+        ]
+    )]
     public function login(LoginRequest $request): JsonResponse
     {
         $user = $this->authService->login(
@@ -50,6 +80,24 @@ class AuthController extends Controller
         ]);
     }
 
+    #[OA\Post(
+        path: "/auth/logout",
+        summary: "Déconnexion utilisateur",
+        tags: ["Authentication"],
+        security: [["bearerAuth" => []]],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Déconnexion réussie",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "message", type: "string", example: "Déconnexion réussie."),
+                    ]
+                )
+            ),
+            new OA\Response(response: 401, description: "Non authentifié"),
+        ]
+    )]
     public function logout(Request $request): JsonResponse
     {
         try {
@@ -76,6 +124,24 @@ class AuthController extends Controller
         }
     }
 
+    #[OA\Get(
+        path: "/auth/me",
+        summary: "Récupérer les informations de l'utilisateur connecté",
+        tags: ["Authentication"],
+        security: [["bearerAuth" => []]],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Informations utilisateur",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "data", type: "object"),
+                    ]
+                )
+            ),
+            new OA\Response(response: 401, description: "Non authentifié"),
+        ]
+    )]
     public function me(Request $request): JsonResponse
     {
         $user = $request->user();

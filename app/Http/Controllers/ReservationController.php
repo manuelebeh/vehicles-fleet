@@ -19,6 +19,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use OpenApi\Attributes as OA;
 
 class ReservationController extends Controller
 {
@@ -29,6 +30,19 @@ class ReservationController extends Controller
     ) {
     }
 
+    #[OA\Get(
+        path: "/reservations",
+        summary: "Liste des réservations",
+        tags: ["Reservations"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "per_page", in: "query", required: false, schema: new OA\Schema(type: "integer", default: 15)),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Liste des réservations"),
+            new OA\Response(response: 401, description: "Non authentifié"),
+        ]
+    )]
     public function index(Request $request): JsonResponse
     {
         $perPage = $this->getPerPage($request);
@@ -37,6 +51,32 @@ class ReservationController extends Controller
         return ReservationResource::collection($reservations)->response();
     }
 
+    #[OA\Post(
+        path: "/reservations",
+        summary: "Créer une réservation",
+        tags: ["Reservations"],
+        security: [["bearerAuth" => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["user_id", "vehicle_id", "start_date", "end_date"],
+                properties: [
+                    new OA\Property(property: "user_id", type: "integer", example: 1),
+                    new OA\Property(property: "vehicle_id", type: "integer", example: 1),
+                    new OA\Property(property: "start_date", type: "string", format: "date-time", example: "2024-01-21T10:00:00Z"),
+                    new OA\Property(property: "end_date", type: "string", format: "date-time", example: "2024-01-21T14:00:00Z"),
+                    new OA\Property(property: "purpose", type: "string", nullable: true, example: "Déplacement professionnel"),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: "Réservation créée"),
+            new OA\Response(response: 401, description: "Non authentifié"),
+            new OA\Response(response: 403, description: "Accès non autorisé"),
+            new OA\Response(response: 409, description: "Conflit (véhicule non disponible ou déjà réservé)"),
+            new OA\Response(response: 422, description: "Erreur de validation"),
+        ]
+    )]
     public function store(ReservationRequest $request): JsonResponse
     {
         try {
@@ -76,12 +116,55 @@ class ReservationController extends Controller
         }
     }
 
+    #[OA\Get(
+        path: "/reservations/{id}",
+        summary: "Afficher une réservation",
+        tags: ["Reservations"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer")),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Détails de la réservation"),
+            new OA\Response(response: 401, description: "Non authentifié"),
+            new OA\Response(response: 403, description: "Accès non autorisé"),
+            new OA\Response(response: 404, description: "Réservation non trouvée"),
+        ]
+    )]
     public function show(Reservation $reservation): JsonResponse
     {
         $reservation->load(['user', 'vehicle']);
         return (new ReservationResource($reservation))->response();
     }
 
+    #[OA\Put(
+        path: "/reservations/{id}",
+        summary: "Mettre à jour une réservation",
+        tags: ["Reservations"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer")),
+        ],
+        requestBody: new OA\RequestBody(
+            required: false,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: "user_id", type: "integer", nullable: true),
+                    new OA\Property(property: "vehicle_id", type: "integer", nullable: true),
+                    new OA\Property(property: "start_date", type: "string", format: "date-time", nullable: true),
+                    new OA\Property(property: "end_date", type: "string", format: "date-time", nullable: true),
+                    new OA\Property(property: "purpose", type: "string", nullable: true),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: "Réservation mise à jour"),
+            new OA\Response(response: 401, description: "Non authentifié"),
+            new OA\Response(response: 403, description: "Accès non autorisé"),
+            new OA\Response(response: 409, description: "Conflit (véhicule non disponible ou déjà réservé)"),
+            new OA\Response(response: 422, description: "Erreur de validation"),
+        ]
+    )]
     public function update(ReservationRequest $request, Reservation $reservation): JsonResponse
     {
         try {
@@ -108,6 +191,21 @@ class ReservationController extends Controller
         }
     }
 
+    #[OA\Delete(
+        path: "/reservations/{id}",
+        summary: "Supprimer une réservation",
+        tags: ["Reservations"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer")),
+        ],
+        responses: [
+            new OA\Response(response: 204, description: "Réservation supprimée"),
+            new OA\Response(response: 401, description: "Non authentifié"),
+            new OA\Response(response: 403, description: "Accès non autorisé"),
+            new OA\Response(response: 404, description: "Réservation non trouvée"),
+        ]
+    )]
     public function destroy(Reservation $reservation): JsonResponse
     {
         $this->reservationService->delete($reservation);
@@ -115,6 +213,21 @@ class ReservationController extends Controller
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 
+    #[OA\Post(
+        path: "/reservations/{id}/cancel",
+        summary: "Annuler une réservation",
+        tags: ["Reservations"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer")),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Réservation annulée"),
+            new OA\Response(response: 401, description: "Non authentifié"),
+            new OA\Response(response: 403, description: "Accès non autorisé"),
+            new OA\Response(response: 422, description: "Transition de statut invalide"),
+        ]
+    )]
     public function cancel(Reservation $reservation): JsonResponse
     {
         try {
@@ -138,6 +251,22 @@ class ReservationController extends Controller
         }
     }
 
+    #[OA\Post(
+        path: "/reservations/{id}/confirm",
+        summary: "Confirmer une réservation",
+        tags: ["Reservations"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer")),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Réservation confirmée"),
+            new OA\Response(response: 401, description: "Non authentifié"),
+            new OA\Response(response: 403, description: "Accès non autorisé"),
+            new OA\Response(response: 409, description: "Conflit (véhicule déjà réservé)"),
+            new OA\Response(response: 422, description: "Transition de statut invalide"),
+        ]
+    )]
     public function confirm(Reservation $reservation): JsonResponse
     {
         try {
@@ -173,6 +302,21 @@ class ReservationController extends Controller
         }
     }
 
+    #[OA\Post(
+        path: "/reservations/{id}/complete",
+        summary: "Finaliser une réservation",
+        tags: ["Reservations"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer")),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Réservation finalisée"),
+            new OA\Response(response: 401, description: "Non authentifié"),
+            new OA\Response(response: 403, description: "Accès non autorisé"),
+            new OA\Response(response: 422, description: "Transition de statut invalide"),
+        ]
+    )]
     public function complete(Reservation $reservation): JsonResponse
     {
         try {
@@ -203,6 +347,21 @@ class ReservationController extends Controller
         return (new ReservationResource($reservation))->response();
     }
 
+    #[OA\Get(
+        path: "/users/{id}/reservations",
+        summary: "Liste des réservations d'un utilisateur",
+        tags: ["Reservations"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer")),
+            new OA\Parameter(name: "per_page", in: "query", required: false, schema: new OA\Schema(type: "integer", default: 15)),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Liste des réservations de l'utilisateur"),
+            new OA\Response(response: 401, description: "Non authentifié"),
+            new OA\Response(response: 404, description: "Utilisateur non trouvé"),
+        ]
+    )]
     public function byUser(User $user, Request $request): JsonResponse
     {
         $perPage = $this->getPerPage($request);
@@ -211,6 +370,21 @@ class ReservationController extends Controller
         return response()->json($reservations);
     }
 
+    #[OA\Get(
+        path: "/vehicles/{id}/reservations",
+        summary: "Liste des réservations d'un véhicule",
+        tags: ["Reservations"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer")),
+            new OA\Parameter(name: "per_page", in: "query", required: false, schema: new OA\Schema(type: "integer", default: 15)),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Liste des réservations du véhicule"),
+            new OA\Response(response: 401, description: "Non authentifié"),
+            new OA\Response(response: 404, description: "Véhicule non trouvé"),
+        ]
+    )]
     public function byVehicle(Vehicle $vehicle, Request $request): JsonResponse
     {
         $perPage = $this->getPerPage($request);
@@ -219,6 +393,21 @@ class ReservationController extends Controller
         return response()->json($reservations);
     }
 
+    #[OA\Get(
+        path: "/reservations/available-vehicles",
+        summary: "Rechercher les véhicules disponibles pour une période",
+        tags: ["Reservations"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "start_date", in: "query", required: true, schema: new OA\Schema(type: "string", format: "date-time")),
+            new OA\Parameter(name: "end_date", in: "query", required: true, schema: new OA\Schema(type: "string", format: "date-time")),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Liste des véhicules disponibles"),
+            new OA\Response(response: 401, description: "Non authentifié"),
+            new OA\Response(response: 422, description: "Erreur de validation"),
+        ]
+    )]
     public function availableVehicles(AvailableVehiclesRequest $request): JsonResponse
     {
         $startDate = Carbon::parse($request->start_date);
