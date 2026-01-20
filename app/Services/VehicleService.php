@@ -7,9 +7,13 @@ use App\Exceptions\InvalidStatusTransitionException;
 use App\Models\Vehicle;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
 
 class VehicleService
 {
+    private const CACHE_KEY_AVAILABLE_VEHICLES = 'vehicles:available';
+    private const CACHE_TTL = 1800; // 30 minutes (plus court car les véhicules peuvent changer de statut plus souvent)
+
     public function getAll(int $perPage = 15): LengthAwarePaginator
     {
         return Vehicle::paginate($perPage);
@@ -32,22 +36,37 @@ class VehicleService
 
     public function getAvailable(): Collection
     {
-        return Vehicle::where('status', VehicleStatus::AVAILABLE)->get();
+        return Cache::remember(self::CACHE_KEY_AVAILABLE_VEHICLES, self::CACHE_TTL, function () {
+            return Vehicle::where('status', VehicleStatus::AVAILABLE)->get();
+        });
     }
 
     public function create(array $data): Vehicle
     {
-        return Vehicle::create($data);
+        $vehicle = Vehicle::create($data);
+        $this->clearAvailableCache();
+        
+        return $vehicle;
     }
 
     public function update(Vehicle $vehicle, array $data): bool
     {
-        return $vehicle->update($data);
+        $result = $vehicle->update($data);
+        
+        // Invalide le cache si le statut ou d'autres données importantes ont été modifiées
+        if (isset($data['status']) || array_key_exists('status', $data)) {
+            $this->clearAvailableCache();
+        }
+        
+        return $result;
     }
 
     public function delete(Vehicle $vehicle): bool
     {
-        return $vehicle->delete();
+        $result = $vehicle->delete();
+        $this->clearAvailableCache();
+        
+        return $result;
     }
 
     public function updateStatus(Vehicle $vehicle, string $status): bool
@@ -70,6 +89,17 @@ class VehicleService
             );
         }
 
-        return $vehicle->update(['status' => $status]);
+        $result = $vehicle->update(['status' => $status]);
+        $this->clearAvailableCache();
+        
+        return $result;
+    }
+
+    /**
+     * Invalide le cache des véhicules disponibles
+     */
+    private function clearAvailableCache(): void
+    {
+        Cache::forget(self::CACHE_KEY_AVAILABLE_VEHICLES);
     }
 }
