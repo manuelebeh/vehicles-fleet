@@ -1,5 +1,5 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import AppLayout from '../../../Layouts/AppLayout';
+import AdminLayout from '../../../Layouts/AdminLayout';
 
 export default function ReservationsCreate({ auth, users = [], vehicles = [], statuses = [] }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -32,7 +32,7 @@ export default function ReservationsCreate({ auth, users = [], vehicles = [], st
     };
 
     return (
-        <AppLayout auth={auth}>
+        <AdminLayout auth={auth}>
             <Head title="Créer une réservation" />
             <div className="py-12">
                 <div className="max-w-2xl mx-auto sm:px-6 lg:px-8">
@@ -216,6 +216,6 @@ export default function ReservationsCreate({ auth, users = [], vehicles = [], st
                     </div>
                 </div>
             </div>
-        </AppLayout>
+        </AdminLayout>
     );
 }

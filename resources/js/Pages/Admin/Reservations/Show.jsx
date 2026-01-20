@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import AppLayout from '../../../Layouts/AppLayout';
+import AdminLayout from '../../../Layouts/AdminLayout';
 
 export default function ReservationsShow({ auth, reservation, statuses = [] }) {
     const handleDelete = () => {
@@ -61,7 +61,7 @@ export default function ReservationsShow({ auth, reservation, statuses = [] }) {
     const canComplete = reservation.status === 'confirmed';
 
     return (
-        <AppLayout auth={auth}>
+        <AdminLayout auth={auth}>
             <Head title={`Réservation #${reservation.id}`} />
             <div className="py-12">
                 <div className="max-w-4xl mx-auto sm:px-6 lg:px-8">
@@ -227,6 +227,6 @@ export default function ReservationsShow({ auth, reservation, statuses = [] }) {
                     </div>
                 </div>
             </div>
-        </AppLayout>
+        </AdminLayout>
     );
 }

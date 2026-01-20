@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import AppLayout from '../../../Layouts/AppLayout';
+import AdminLayout from '../../../Layouts/AdminLayout';
 
 export default function UsersShow({ auth, user, roles }) {
     const handleDelete = () => {
@@ -9,7 +9,7 @@ export default function UsersShow({ auth, user, roles }) {
     };
 
     return (
-        <AppLayout auth={auth}>
+        <AdminLayout auth={auth}>
             <Head title={`Utilisateur: ${user.email}`} />
             <div className="py-12">
                 <div className="max-w-4xl mx-auto sm:px-6 lg:px-8">
@@ -154,6 +154,6 @@ export default function UsersShow({ auth, user, roles }) {
                     </div>
                 </div>
             </div>
-        </AppLayout>
+        </AdminLayout>
     );
 }

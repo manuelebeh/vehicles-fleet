@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import AppLayout from '../../../Layouts/AppLayout';
+import AdminLayout from '../../../Layouts/AdminLayout';
 
 export default function ReservationsIndex({ auth, reservations }) {
     const handleDelete = (reservationId, vehicleName) => {
@@ -41,7 +41,7 @@ export default function ReservationsIndex({ auth, reservations }) {
     };
 
     return (
-        <AppLayout auth={auth}>
+        <AdminLayout auth={auth}>
             <Head title="Gestion des réservations" />
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -209,6 +209,6 @@ export default function ReservationsIndex({ auth, reservations }) {
                     </div>
                 </div>
             </div>
-        </AppLayout>
+        </AdminLayout>
     );
 }
