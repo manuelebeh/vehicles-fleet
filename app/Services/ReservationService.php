@@ -26,6 +26,33 @@ class ReservationService
         return Reservation::with(['user', 'vehicle'])->get();
     }
 
+    /**
+     * Obtenir les réservations avec filtres pour l'export
+     *
+     * @param  \Carbon\Carbon|null  $startDate
+     * @param  \Carbon\Carbon|null  $endDate
+     * @param  string|null  $status
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getForExport(?Carbon $startDate = null, ?Carbon $endDate = null, ?string $status = null): Collection
+    {
+        $query = Reservation::with(['user', 'vehicle']);
+
+        if ($startDate) {
+            $query->where('start_date', '>=', $startDate);
+        }
+
+        if ($endDate) {
+            $query->where('end_date', '<=', $endDate);
+        }
+
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        return $query->orderBy('start_date', 'desc')->get();
+    }
+
     public function getById(int $id): ?Reservation
     {
         return Reservation::with(['user', 'vehicle'])->find($id);

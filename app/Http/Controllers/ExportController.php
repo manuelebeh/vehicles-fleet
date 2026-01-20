@@ -52,27 +52,8 @@ class ExportController extends Controller
         $status = $request->get('status');
 
         try {
-            $reservations = $this->reservationService->getAllWithoutPagination();
-
-            // Filtrer par date si fourni
-            if ($startDate) {
-                $reservations = $reservations->filter(function ($reservation) use ($startDate) {
-                    return $reservation->start_date->gte($startDate);
-                });
-            }
-
-            if ($endDate) {
-                $reservations = $reservations->filter(function ($reservation) use ($endDate) {
-                    return $reservation->end_date->lte($endDate);
-                });
-            }
-
-            // Filtrer par statut si fourni
-            if ($status) {
-                $reservations = $reservations->filter(function ($reservation) use ($status) {
-                    return $reservation->status === $status;
-                });
-            }
+            // Filtrer au niveau SQL pour de meilleures performances
+            $reservations = $this->reservationService->getForExport($startDate, $endDate, $status);
 
             $filename = 'reservations_' . date('Y-m-d_His') . '.csv';
 
