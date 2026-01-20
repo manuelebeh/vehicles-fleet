@@ -22,8 +22,11 @@ class ReservationRequest extends FormRequest
         }
         
         if ($this->isMethod('POST')) {
+            // Pour les utilisateurs non-admin, permettre la création si :
+            // 1. Pas de user_id fourni (sera forcé par le contrôleur) OU
+            // 2. user_id fourni correspond à l'utilisateur connecté
             $requestedUserId = $this->input('user_id');
-            return $requestedUserId && (int) $requestedUserId === $user->id;
+            return !$requestedUserId || (int) $requestedUserId === $user->id;
         }
         
         if ($reservation) {
@@ -38,11 +41,7 @@ class ReservationRequest extends FormRequest
         $reservationId = $this->route('reservation')->id ?? null;
         $isUpdate = $this->isMethod('PUT') || $this->isMethod('PATCH');
 
-        return [
-            'user_id' => [
-                $isUpdate ? 'sometimes' : 'required',
-                'exists:users,id',
-            ],
+        $rules = [
             'vehicle_id' => [
                 $isUpdate ? 'sometimes' : 'required',
                 'exists:vehicles,id',
@@ -64,6 +63,21 @@ class ReservationRequest extends FormRequest
             ],
             'purpose' => 'nullable|string',
         ];
+
+        // user_id est requis pour les admins, nullable pour les clients (sera forcé par le contrôleur)
+        if ($isUpdate) {
+            $rules['user_id'] = ['sometimes', 'exists:users,id'];
+        } else {
+            $user = $this->user();
+            if ($user && $user->hasRole('admin')) {
+                $rules['user_id'] = ['required', 'exists:users,id'];
+            } else {
+                // Pour les clients, user_id est nullable et sera ajouté par le contrôleur
+                $rules['user_id'] = ['nullable'];
+            }
+        }
+
+        return $rules;
     }
 
     public function messages(): array
