@@ -1,5 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
+import Button from '../../../Components/Button';
 
 export default function ReservationsShow({ auth, reservation, statuses = [] }) {
     const handleDelete = () => {
@@ -84,12 +85,12 @@ export default function ReservationsShow({ auth, reservation, statuses = [] }) {
                                     >
                                         Modifier
                                     </Link>
-                                    <button
+                                    <Button
                                         onClick={handleDelete}
-                                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                                        variant="danger"
                                     >
                                         Supprimer
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
 
@@ -192,28 +193,31 @@ export default function ReservationsShow({ auth, reservation, statuses = [] }) {
                                     </h2>
                                     <div className="flex gap-2">
                                         {canConfirm && (
-                                            <button
+                                            <Button
                                                 onClick={handleConfirm}
-                                                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm font-medium"
+                                                variant="success"
+                                                size="sm"
                                             >
                                                 Confirmer
-                                            </button>
+                                            </Button>
                                         )}
                                         {canCancel && (
-                                            <button
+                                            <Button
                                                 onClick={handleCancel}
-                                                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm font-medium"
+                                                variant="danger"
+                                                size="sm"
                                             >
                                                 Annuler
-                                            </button>
+                                            </Button>
                                         )}
                                         {canComplete && (
-                                            <button
+                                            <Button
                                                 onClick={handleComplete}
-                                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium"
+                                                variant="info"
+                                                size="sm"
                                             >
                                                 Finaliser
-                                            </button>
+                                            </Button>
                                         )}
                                         {!canConfirm && !canCancel && !canComplete && (
                                             <p className="text-sm text-gray-500">

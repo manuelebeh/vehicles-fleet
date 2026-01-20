@@ -1,5 +1,8 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
+import Input from '../../../Components/Input';
+import Select from '../../../Components/Select';
+import Button from '../../../Components/Button';
 
 export default function VehiclesCreate({ auth, statuses = [] }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -51,132 +54,83 @@ export default function VehiclesCreate({ auth, statuses = [] }) {
                             <form onSubmit={handleSubmit}>
                                 <div className="space-y-6">
                                     {/* Brand */}
-                                    <div>
-                                        <label htmlFor="brand" className="block text-sm font-medium text-gray-700">
-                                            Marque <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="brand"
-                                            value={data.brand}
-                                            onChange={(e) => setData('brand', e.target.value)}
-                                            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 ${
-                                                errors.brand ? 'border-red-500' : ''
-                                            }`}
-                                            required
-                                            maxLength={100}
-                                        />
-                                        {errors.brand && (
-                                            <p className="mt-1 text-sm text-red-600">{errors.brand}</p>
-                                        )}
-                                    </div>
+                                    <Input
+                                        type="text"
+                                        id="brand"
+                                        name="brand"
+                                        label="Marque"
+                                        required
+                                        value={data.brand}
+                                        onChange={(e) => setData('brand', e.target.value)}
+                                        error={errors.brand}
+                                        maxLength={100}
+                                    />
 
                                     {/* Model */}
-                                    <div>
-                                        <label htmlFor="model" className="block text-sm font-medium text-gray-700">
-                                            Modèle <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="model"
-                                            value={data.model}
-                                            onChange={(e) => setData('model', e.target.value)}
-                                            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 ${
-                                                errors.model ? 'border-red-500' : ''
-                                            }`}
-                                            required
-                                            maxLength={100}
-                                        />
-                                        {errors.model && (
-                                            <p className="mt-1 text-sm text-red-600">{errors.model}</p>
-                                        )}
-                                    </div>
+                                    <Input
+                                        type="text"
+                                        id="model"
+                                        name="model"
+                                        label="Modèle"
+                                        required
+                                        value={data.model}
+                                        onChange={(e) => setData('model', e.target.value)}
+                                        error={errors.model}
+                                        maxLength={100}
+                                    />
 
                                     {/* License Plate */}
-                                    <div>
-                                        <label htmlFor="license_plate" className="block text-sm font-medium text-gray-700">
-                                            Plaque d'immatriculation <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="license_plate"
-                                            value={data.license_plate}
-                                            onChange={(e) => setData('license_plate', e.target.value.toUpperCase())}
-                                            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono ${
-                                                errors.license_plate ? 'border-red-500' : ''
-                                            }`}
-                                            required
-                                            maxLength={30}
-                                        />
-                                        {errors.license_plate && (
-                                            <p className="mt-1 text-sm text-red-600">{errors.license_plate}</p>
-                                        )}
-                                    </div>
+                                    <Input
+                                        type="text"
+                                        id="license_plate"
+                                        name="license_plate"
+                                        label="Plaque d'immatriculation"
+                                        required
+                                        value={data.license_plate}
+                                        onChange={(e) => setData('license_plate', e.target.value.toUpperCase())}
+                                        error={errors.license_plate}
+                                        maxLength={30}
+                                        className="font-mono"
+                                    />
 
                                     {/* Year */}
-                                    <div>
-                                        <label htmlFor="year" className="block text-sm font-medium text-gray-700">
-                                            Année
-                                        </label>
-                                        <input
-                                            type="number"
-                                            id="year"
-                                            value={data.year}
-                                            onChange={(e) => setData('year', e.target.value ? parseInt(e.target.value) : '')}
-                                            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 ${
-                                                errors.year ? 'border-red-500' : ''
-                                            }`}
-                                            min="1900"
-                                            max={new Date().getFullYear() + 1}
-                                        />
-                                        {errors.year && (
-                                            <p className="mt-1 text-sm text-red-600">{errors.year}</p>
-                                        )}
-                                    </div>
+                                    <Input
+                                        type="number"
+                                        id="year"
+                                        name="year"
+                                        label="Année"
+                                        value={data.year}
+                                        onChange={(e) => setData('year', e.target.value ? parseInt(e.target.value) : '')}
+                                        error={errors.year}
+                                        min="1900"
+                                        max={new Date().getFullYear() + 1}
+                                    />
 
                                     {/* Color */}
-                                    <div>
-                                        <label htmlFor="color" className="block text-sm font-medium text-gray-700">
-                                            Couleur
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="color"
-                                            value={data.color}
-                                            onChange={(e) => setData('color', e.target.value)}
-                                            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 ${
-                                                errors.color ? 'border-red-500' : ''
-                                            }`}
-                                            maxLength={50}
-                                        />
-                                        {errors.color && (
-                                            <p className="mt-1 text-sm text-red-600">{errors.color}</p>
-                                        )}
-                                    </div>
+                                    <Input
+                                        type="text"
+                                        id="color"
+                                        name="color"
+                                        label="Couleur"
+                                        value={data.color}
+                                        onChange={(e) => setData('color', e.target.value)}
+                                        error={errors.color}
+                                        maxLength={50}
+                                    />
 
                                     {/* Status */}
-                                    <div>
-                                        <label htmlFor="status" className="block text-sm font-medium text-gray-700">
-                                            Statut
-                                        </label>
-                                        <select
-                                            id="status"
-                                            value={data.status}
-                                            onChange={(e) => setData('status', e.target.value)}
-                                            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 ${
-                                                errors.status ? 'border-red-500' : ''
-                                            }`}
-                                        >
-                                            {statuses.map((status) => (
-                                                <option key={status} value={status}>
-                                                    {getStatusLabel(status)}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {errors.status && (
-                                            <p className="mt-1 text-sm text-red-600">{errors.status}</p>
-                                        )}
-                                    </div>
+                                    <Select
+                                        id="status"
+                                        name="status"
+                                        label="Statut"
+                                        value={data.status}
+                                        onChange={(e) => setData('status', e.target.value)}
+                                        error={errors.status}
+                                        options={statuses.map((status) => ({
+                                            value: status,
+                                            label: getStatusLabel(status),
+                                        }))}
+                                    />
 
                                     {/* Error général */}
                                     {errors.error && (
@@ -193,13 +147,12 @@ export default function VehiclesCreate({ auth, statuses = [] }) {
                                         >
                                             Annuler
                                         </Link>
-                                        <button
+                                        <Button
                                             type="submit"
-                                            disabled={processing}
-                                            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                                            processing={processing}
                                         >
-                                            {processing ? 'Création...' : 'Créer'}
-                                        </button>
+                                            Créer
+                                        </Button>
                                     </div>
                                 </div>
                             </form>
