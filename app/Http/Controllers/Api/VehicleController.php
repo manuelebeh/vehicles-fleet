@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Exceptions\InvalidStatusTransitionException;
 use App\Http\Requests\Vehicle\UpdateStatusRequest;
 use App\Http\Requests\Vehicle\VehicleRequest;

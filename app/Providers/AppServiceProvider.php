@@ -19,6 +19,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Define gate for admin access
+        \Illuminate\Support\Facades\Gate::define('access-admin', function ($user) {
+            return $user->hasRole('admin');
+        });
     }
 }

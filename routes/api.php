@@ -1,22 +1,22 @@
 <?php
 
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ExportController;
-use App\Http\Controllers\ImportController;
-use App\Http\Controllers\ReservationController;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\StatisticsController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\VehicleController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ExportController;
+use App\Http\Controllers\Api\ImportController;
+use App\Http\Controllers\Api\ReservationController;
+use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\StatisticsController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\VehicleController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
     // Rate limiting strict pour protéger contre les attaques par force brute
-    Route::post('/login', [AuthController::class, 'login'])
+    Route::post('/login', [AuthController::class, 'loginApi'])
         ->middleware('throttle:5,1'); // 5 tentatives par minute
     
     Route::middleware('auth:sanctum')->group(function () {
-        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::post('/logout', [AuthController::class, 'logoutApi']);
         Route::get('/me', [AuthController::class, 'me']);
     });
 });
