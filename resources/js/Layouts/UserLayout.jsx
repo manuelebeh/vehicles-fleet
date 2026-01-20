@@ -1,7 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import FlashMessages from '../Components/FlashMessages';
 
-export default function AppLayout({ children, auth }) {
+export default function UserLayout({ children, auth }) {
     return (
         <>
             <Head title="Vehicles Fleet" />
@@ -18,27 +18,19 @@ export default function AppLayout({ children, auth }) {
                                 </Link>
                                 {auth?.user && (
                                     <>
+                                        <Link
+                                            href="/reservations"
+                                            className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none focus:text-gray-900 transition duration-150 ease-in-out"
+                                        >
+                                            Mes réservations
+                                        </Link>
                                         {auth.user.roles?.includes('admin') && (
-                                            <>
-                                                <Link
-                                                    href="/admin"
-                                                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none focus:text-gray-900 transition duration-150 ease-in-out"
-                                                >
-                                                    Administration
-                                                </Link>
-                                                <Link
-                                                    href="/admin/users"
-                                                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none focus:text-gray-900 transition duration-150 ease-in-out"
-                                                >
-                                                    Utilisateurs
-                                                </Link>
-                                                <Link
-                                                    href="/admin/vehicles"
-                                                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none focus:text-gray-900 transition duration-150 ease-in-out"
-                                                >
-                                                    Véhicules
-                                                </Link>
-                                            </>
+                                            <Link
+                                                href="/admin"
+                                                className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none focus:text-gray-900 transition duration-150 ease-in-out"
+                                            >
+                                                Administration
+                                            </Link>
                                         )}
                                     </>
                                 )}

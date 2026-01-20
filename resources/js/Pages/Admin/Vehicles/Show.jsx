@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import AppLayout from '../../../Layouts/AppLayout';
+import AdminLayout from '../../../Layouts/AdminLayout';
 
 export default function VehiclesShow({ auth, vehicle, statuses = [] }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -44,7 +44,7 @@ export default function VehiclesShow({ auth, vehicle, statuses = [] }) {
     };
 
     return (
-        <AppLayout auth={auth}>
+        <AdminLayout auth={auth}>
             <Head title={`Véhicule: ${vehicle.license_plate}`} />
             <div className="py-12">
                 <div className="max-w-4xl mx-auto sm:px-6 lg:px-8">
@@ -195,6 +195,6 @@ export default function VehiclesShow({ auth, vehicle, statuses = [] }) {
                     </div>
                 </div>
             </div>
-        </AppLayout>
+        </AdminLayout>
     );
 }

@@ -1,9 +1,9 @@
 import { Head, Link } from '@inertiajs/react';
-import AppLayout from '../../Layouts/AppLayout';
+import AdminLayout from '../../Layouts/AdminLayout';
 
 export default function AdminIndex({ auth }) {
     return (
-        <AppLayout auth={auth}>
+        <AdminLayout auth={auth}>
             <Head title="Administration" />
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -36,7 +36,7 @@ export default function AdminIndex({ auth }) {
                                             <h3 className="font-semibold text-lg mb-2">Réservations</h3>
                                             <p className="text-gray-600 text-sm mb-4">Gérer les réservations</p>
                                             <Link
-                                                href="#"
+                                                href="/admin/reservations"
                                                 className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
                                             >
                                                 Voir les réservations →
@@ -59,6 +59,6 @@ export default function AdminIndex({ auth }) {
                     </div>
                 </div>
             </div>
-        </AppLayout>
+        </AdminLayout>
     );
 }

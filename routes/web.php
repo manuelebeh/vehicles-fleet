@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Web\AuthController;
+use App\Http\Controllers\Web\ReservationController;
 use App\Http\Controllers\Web\UserController;
 use App\Http\Controllers\Web\VehicleController;
 use Illuminate\Support\Facades\Route;
@@ -52,5 +53,20 @@ Route::middleware('auth')->group(function () {
         ]);
         
         Route::post('/vehicles/{vehicle}/status', [VehicleController::class, 'updateStatus'])->name('admin.vehicles.update-status');
+        
+        // Routes pour la gestion des réservations
+        Route::resource('reservations', ReservationController::class)->names([
+            'index' => 'admin.reservations.index',
+            'create' => 'admin.reservations.create',
+            'store' => 'admin.reservations.store',
+            'show' => 'admin.reservations.show',
+            'edit' => 'admin.reservations.edit',
+            'update' => 'admin.reservations.update',
+            'destroy' => 'admin.reservations.destroy',
+        ]);
+        
+        Route::post('/reservations/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('admin.reservations.cancel');
+        Route::post('/reservations/{reservation}/confirm', [ReservationController::class, 'confirm'])->name('admin.reservations.confirm');
+        Route::post('/reservations/{reservation}/complete', [ReservationController::class, 'complete'])->name('admin.reservations.complete');
     });
 });

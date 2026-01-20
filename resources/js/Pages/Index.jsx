@@ -1,9 +1,9 @@
 import { Head, Link } from '@inertiajs/react';
-import AppLayout from '../Layouts/AppLayout';
+import UserLayout from '../Layouts/UserLayout';
 
 export default function Index({ auth }) {
     return (
-        <AppLayout auth={auth}>
+        <UserLayout auth={auth}>
             <Head title="Accueil" />
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -45,6 +45,6 @@ export default function Index({ auth }) {
                     </div>
                 </div>
             </div>
-        </AppLayout>
+        </UserLayout>
     );
 }

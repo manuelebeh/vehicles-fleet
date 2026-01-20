@@ -1,10 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 
-export default function VehiclesIndex({ auth, vehicles }) {
-    const handleDelete = (vehicleId, licensePlate) => {
-        if (confirm(`Êtes-vous sûr de vouloir supprimer le véhicule ${licensePlate} ?`)) {
-            router.delete(`/admin/vehicles/${vehicleId}`, {
+export default function ReservationsIndex({ auth, reservations }) {
+    const handleDelete = (reservationId, vehicleName) => {
+        if (confirm(`Êtes-vous sûr de vouloir supprimer cette réservation pour ${vehicleName} ?`)) {
+            router.delete(`/admin/reservations/${reservationId}`, {
                 preserveScroll: true,
             });
         }
@@ -12,12 +12,14 @@ export default function VehiclesIndex({ auth, vehicles }) {
 
     const getStatusBadgeClass = (status) => {
         switch (status) {
-            case 'available':
-                return 'bg-green-100 text-green-800';
-            case 'maintenance':
+            case 'pending':
                 return 'bg-yellow-100 text-yellow-800';
-            case 'out_of_service':
+            case 'confirmed':
+                return 'bg-green-100 text-green-800';
+            case 'cancelled':
                 return 'bg-red-100 text-red-800';
+            case 'completed':
+                return 'bg-blue-100 text-blue-800';
             default:
                 return 'bg-gray-100 text-gray-800';
         }
@@ -25,12 +27,14 @@ export default function VehiclesIndex({ auth, vehicles }) {
 
     const getStatusLabel = (status) => {
         switch (status) {
-            case 'available':
-                return 'Disponible';
-            case 'maintenance':
-                return 'En maintenance';
-            case 'out_of_service':
-                return 'Hors service';
+            case 'pending':
+                return 'En attente';
+            case 'confirmed':
+                return 'Confirmée';
+            case 'cancelled':
+                return 'Annulée';
+            case 'completed':
+                return 'Terminée';
             default:
                 return status;
         }
@@ -38,20 +42,20 @@ export default function VehiclesIndex({ auth, vehicles }) {
 
     return (
         <AdminLayout auth={auth}>
-            <Head title="Gestion des véhicules" />
+            <Head title="Gestion des réservations" />
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6">
                             <div className="flex justify-between items-center mb-6">
                                 <h1 className="text-3xl font-bold text-gray-900">
-                                    Gestion des véhicules
+                                    Gestion des réservations
                                 </h1>
                                 <Link
-                                    href="/admin/vehicles/create"
+                                    href="/admin/reservations/create"
                                     className="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
                                 >
-                                    Nouveau véhicule
+                                    Nouvelle réservation
                                 </Link>
                             </div>
 
@@ -63,16 +67,16 @@ export default function VehiclesIndex({ auth, vehicles }) {
                                                 ID
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Marque / Modèle
+                                                Utilisateur
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Plaque
+                                                Véhicule
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Année
+                                                Date début
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Couleur
+                                                Date fin
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Statut
@@ -86,49 +90,55 @@ export default function VehiclesIndex({ auth, vehicles }) {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {vehicles.data.map((vehicle) => (
-                                            <tr key={vehicle.id} className="hover:bg-gray-50">
+                                        {reservations.data.map((reservation) => (
+                                            <tr key={reservation.id} className="hover:bg-gray-50">
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {vehicle.id}
+                                                    {reservation.id}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {vehicle.brand} {vehicle.model}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-mono">
-                                                    {vehicle.license_plate}
+                                                    {reservation.user?.email || `User #${reservation.user_id}`}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {vehicle.year || '-'}
+                                                    {reservation.vehicle
+                                                        ? `${reservation.vehicle.brand} ${reservation.vehicle.model} (${reservation.vehicle.license_plate})`
+                                                        : `Vehicle #${reservation.vehicle_id}`}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {vehicle.color || '-'}
+                                                    {reservation.start_date
+                                                        ? new Date(reservation.start_date).toLocaleString('fr-FR')
+                                                        : '-'}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    {reservation.end_date
+                                                        ? new Date(reservation.end_date).toLocaleString('fr-FR')
+                                                        : '-'}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(vehicle.status)}`}>
-                                                        {getStatusLabel(vehicle.status)}
+                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(reservation.status)}`}>
+                                                        {getStatusLabel(reservation.status)}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {vehicle.created_at
-                                                        ? new Date(vehicle.created_at).toLocaleDateString('fr-FR')
+                                                    {reservation.created_at
+                                                        ? new Date(reservation.created_at).toLocaleDateString('fr-FR')
                                                         : '-'}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                     <div className="flex justify-end gap-2">
                                                         <Link
-                                                            href={`/admin/vehicles/${vehicle.id}`}
+                                                            href={`/admin/reservations/${reservation.id}`}
                                                             className="text-indigo-600 hover:text-indigo-900"
                                                         >
                                                             Voir
                                                         </Link>
                                                         <Link
-                                                            href={`/admin/vehicles/${vehicle.id}/edit`}
+                                                            href={`/admin/reservations/${reservation.id}/edit`}
                                                             className="text-yellow-600 hover:text-yellow-900"
                                                         >
                                                             Modifier
                                                         </Link>
                                                         <button
-                                                            onClick={() => handleDelete(vehicle.id, vehicle.license_plate)}
+                                                            onClick={() => handleDelete(reservation.id, reservation.vehicle?.license_plate || 'ce véhicule')}
                                                             className="text-red-600 hover:text-red-900"
                                                         >
                                                             Supprimer
@@ -141,27 +151,27 @@ export default function VehiclesIndex({ auth, vehicles }) {
                                 </table>
                             </div>
 
-                            {vehicles.data.length === 0 && (
+                            {reservations.data.length === 0 && (
                                 <div className="text-center py-12">
-                                    <p className="text-gray-500">Aucun véhicule trouvé.</p>
+                                    <p className="text-gray-500">Aucune réservation trouvée.</p>
                                 </div>
                             )}
 
                             {/* Pagination */}
-                            {vehicles.links && vehicles.links.length > 3 && (
+                            {reservations.links && reservations.links.length > 3 && (
                                 <div className="mt-6 flex items-center justify-between">
                                     <div className="flex-1 flex justify-between sm:hidden">
-                                        {vehicles.links[0].url && (
+                                        {reservations.links[0].url && (
                                             <Link
-                                                href={vehicles.links[0].url}
+                                                href={reservations.links[0].url}
                                                 className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                                             >
                                                 Précédent
                                             </Link>
                                         )}
-                                        {vehicles.links[vehicles.links.length - 1].url && (
+                                        {reservations.links[reservations.links.length - 1].url && (
                                             <Link
-                                                href={vehicles.links[vehicles.links.length - 1].url}
+                                                href={reservations.links[reservations.links.length - 1].url}
                                                 className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                                             >
                                                 Suivant
@@ -171,14 +181,14 @@ export default function VehiclesIndex({ auth, vehicles }) {
                                     <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                                         <div>
                                             <p className="text-sm text-gray-700">
-                                                Affichage de <span className="font-medium">{vehicles.from}</span> à{' '}
-                                                <span className="font-medium">{vehicles.to}</span> sur{' '}
-                                                <span className="font-medium">{vehicles.total}</span> résultats
+                                                Affichage de <span className="font-medium">{reservations.from}</span> à{' '}
+                                                <span className="font-medium">{reservations.to}</span> sur{' '}
+                                                <span className="font-medium">{reservations.total}</span> résultats
                                             </p>
                                         </div>
                                         <div>
                                             <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                                                {vehicles.links.map((link, index) => (
+                                                {reservations.links.map((link, index) => (
                                                     <Link
                                                         key={index}
                                                         href={link.url || '#'}
