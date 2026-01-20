@@ -79,7 +79,7 @@ class ReservationRequest extends FormRequest
             'end_date.required' => 'La date de fin est obligatoire.',
             'end_date.date' => 'La date de fin doit être une date valide.',
             'end_date.after' => 'La date de fin doit être postérieure à la date de début.',
-            'status.in' => 'Le statut doit être : pending, confirmed, cancelled ou completed.',
+            'status.in' => 'Le statut doit être : ' . implode(', ', ReservationStatus::all()) . '.',
         ];
     }
 
