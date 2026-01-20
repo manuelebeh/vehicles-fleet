@@ -1,8 +1,11 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ExportController;
+use App\Http\Controllers\ImportController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\StatisticsController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleController;
 use Illuminate\Support\Facades\Route;
@@ -38,4 +41,14 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     Route::post('/reservations/{reservation}/complete', [ReservationController::class, 'complete']);
     Route::get('/users/{user}/reservations', [ReservationController::class, 'byUser']);
     Route::get('/vehicles/{vehicle}/reservations', [ReservationController::class, 'byVehicle']);
+    
+    // Export/Import
+    Route::get('/export/reservations', [ExportController::class, 'exportReservations']);
+    Route::post('/import/vehicles', [ImportController::class, 'importVehicles']);
+    
+    // Statistics
+    Route::get('/statistics/general', [StatisticsController::class, 'general']);
+    Route::get('/statistics/reservations-by-month', [StatisticsController::class, 'reservationsByMonth']);
+    Route::get('/statistics/most-used-vehicles', [StatisticsController::class, 'mostUsedVehicles']);
+    Route::get('/statistics/vehicle-occupancy', [StatisticsController::class, 'vehicleOccupancy']);
 });
