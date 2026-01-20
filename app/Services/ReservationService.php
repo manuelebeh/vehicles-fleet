@@ -113,32 +113,47 @@ class ReservationService
         return $reservation->delete();
     }
 
+    public function updateStatus(Reservation $reservation, string $status): bool
+    {
+        $validStatuses = ['pending', 'confirmed', 'cancelled', 'completed'];
+        
+        if (!in_array($status, $validStatuses)) {
+            throw new \InvalidArgumentException("Le statut '{$status}' n'est pas valide.");
+        }
+
+        if ($status === 'confirmed') {
+            return DB::transaction(function () use ($reservation, $status) {
+                $vehicle = $reservation->vehicle;
+
+                if (!$this->checkAvailability(
+                    $vehicle,
+                    $reservation->start_date,
+                    $reservation->end_date,
+                    $reservation->id
+                )) {
+                    throw new \RuntimeException('Le véhicule est déjà réservé pour cette période.');
+                }
+
+                return $reservation->update(['status' => $status]);
+            });
+        }
+
+        return $reservation->update(['status' => $status]);
+    }
+
     public function cancel(Reservation $reservation): bool
     {
-        return $reservation->update(['status' => 'cancelled']);
+        return $this->updateStatus($reservation, 'cancelled');
     }
 
     public function confirm(Reservation $reservation): bool
     {
-        return DB::transaction(function () use ($reservation) {
-            $vehicle = $reservation->vehicle;
-
-            if (!$this->checkAvailability(
-                $vehicle,
-                $reservation->start_date,
-                $reservation->end_date,
-                $reservation->id
-            )) {
-                throw new \RuntimeException('Le véhicule est déjà réservé pour cette période.');
-            }
-
-            return $reservation->update(['status' => 'confirmed']);
-        });
+        return $this->updateStatus($reservation, 'confirmed');
     }
 
     public function complete(Reservation $reservation): bool
     {
-        return $reservation->update(['status' => 'completed']);
+        return $this->updateStatus($reservation, 'completed');
     }
 
     public function checkAvailability(

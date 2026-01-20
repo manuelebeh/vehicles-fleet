@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\RoleRequest;
+use App\Http\Requests\Role\RoleRequest;
 use App\Models\Role;
 use App\Services\RoleService;
 use Illuminate\Http\JsonResponse;
@@ -33,6 +33,7 @@ class RoleController extends Controller
 
     public function show(Role $role): JsonResponse
     {
+        $role->load('users');
         return response()->json($role);
     }
 

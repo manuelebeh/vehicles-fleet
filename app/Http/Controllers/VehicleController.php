@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\VehicleRequest;
+use App\Http\Requests\Vehicle\UpdateStatusRequest;
+use App\Http\Requests\Vehicle\VehicleRequest;
 use App\Models\Vehicle;
 use App\Services\VehicleService;
 use Illuminate\Http\JsonResponse;
@@ -59,12 +60,8 @@ class VehicleController extends Controller
         return response()->json($vehicles);
     }
 
-    public function updateStatus(Request $request, Vehicle $vehicle): JsonResponse
+    public function updateStatus(UpdateStatusRequest $request, Vehicle $vehicle): JsonResponse
     {
-        $request->validate([
-            'status' => 'required|string|in:available,maintenance,out_of_service',
-        ]);
-
         $this->vehicleService->updateStatus($vehicle, $request->status);
         $vehicle->refresh();
 
