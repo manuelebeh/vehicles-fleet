@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Web\AuthController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 

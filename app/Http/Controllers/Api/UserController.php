@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\User\AssignRoleRequest;
 use App\Http\Requests\User\RemoveRoleRequest;
 use App\Http\Requests\User\SyncRolesRequest;

@@ -1,13 +1,13 @@
 <?php
 
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ExportController;
-use App\Http\Controllers\ImportController;
-use App\Http\Controllers\ReservationController;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\StatisticsController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\VehicleController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ExportController;
+use App\Http\Controllers\Api\ImportController;
+use App\Http\Controllers\Api\ReservationController;
+use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\StatisticsController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\VehicleController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
