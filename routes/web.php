@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\Web\UserController;
+use App\Http\Controllers\Web\VehicleController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -38,5 +39,18 @@ Route::middleware('auth')->group(function () {
         // Routes pour la gestion des rôles des utilisateurs
         Route::post('/users/{user}/roles', [UserController::class, 'assignRole'])->name('admin.users.roles.assign');
         Route::post('/users/{user}/roles/remove', [UserController::class, 'removeRole'])->name('admin.users.roles.remove');
+        
+        // Routes pour la gestion des véhicules
+        Route::resource('vehicles', VehicleController::class)->names([
+            'index' => 'admin.vehicles.index',
+            'create' => 'admin.vehicles.create',
+            'store' => 'admin.vehicles.store',
+            'show' => 'admin.vehicles.show',
+            'edit' => 'admin.vehicles.edit',
+            'update' => 'admin.vehicles.update',
+            'destroy' => 'admin.vehicles.destroy',
+        ]);
+        
+        Route::post('/vehicles/{vehicle}/status', [VehicleController::class, 'updateStatus'])->name('admin.vehicles.update-status');
     });
 });

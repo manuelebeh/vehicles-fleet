@@ -32,6 +32,12 @@ export default function AppLayout({ children, auth }) {
                                                 >
                                                     Utilisateurs
                                                 </Link>
+                                                <Link
+                                                    href="/admin/vehicles"
+                                                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none focus:text-gray-900 transition duration-150 ease-in-out"
+                                                >
+                                                    Véhicules
+                                                </Link>
                                             </>
                                         )}
                                     </>
