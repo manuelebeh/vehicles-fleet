@@ -20,8 +20,20 @@ class StatisticsService
     {
         $startDate = Carbon::now()->subMonths($months - 1)->startOfMonth();
         
+        // Approche compatible multi-SGBD
+        $driver = DB::getDriverName();
+        
+        if ($driver === 'mysql') {
+            $monthExpression = DB::raw('DATE_FORMAT(start_date, "%Y-%m") as month');
+        } elseif ($driver === 'pgsql') {
+            $monthExpression = DB::raw("TO_CHAR(start_date, 'YYYY-MM') as month");
+        } else {
+            // SQLite et autres : utilise strftime
+            $monthExpression = DB::raw("strftime('%Y-%m', start_date) as month");
+        }
+        
         $reservations = Reservation::select(
-            DB::raw('DATE_FORMAT(start_date, "%Y-%m") as month'),
+            $monthExpression,
             DB::raw('COUNT(*) as count')
         )
         ->where('start_date', '>=', $startDate)
@@ -29,7 +41,7 @@ class StatisticsService
         ->orderBy('month', 'asc')
         ->get();
 
-        // Remplir les mois manquants avec 0
+        // Remplit les mois manquants avec 0
         $result = [];
         $current = $startDate->copy();
         $end = Carbon::now()->endOfMonth();

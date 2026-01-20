@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\ReservationService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -23,7 +24,7 @@ class ExportController extends Controller
         tags: ["Export"],
         security: [["bearerAuth" => []]],
         parameters: [
-            new OA\Parameter(name: "format", in: "query", required: false, schema: new OA\Schema(type: "string", enum: ["csv", "excel"], default: "csv")),
+            new OA\Parameter(name: "format", in: "query", required: false, schema: new OA\Schema(type: "string", enum: ["csv"], default: "csv"), description: "Format d'export (actuellement seul CSV est supporté)"),
             new OA\Parameter(name: "start_date", in: "query", required: false, schema: new OA\Schema(type: "string", format: "date")),
             new OA\Parameter(name: "end_date", in: "query", required: false, schema: new OA\Schema(type: "string", format: "date")),
             new OA\Parameter(name: "status", in: "query", required: false, schema: new OA\Schema(type: "string")),
@@ -46,8 +47,8 @@ class ExportController extends Controller
         }
 
         $format = $request->get('format', 'csv');
-        $startDate = $request->get('start_date');
-        $endDate = $request->get('end_date');
+        $startDate = $request->get('start_date') ? Carbon::parse($request->get('start_date')) : null;
+        $endDate = $request->get('end_date') ? Carbon::parse($request->get('end_date')) : null;
         $status = $request->get('status');
 
         try {
@@ -56,13 +57,13 @@ class ExportController extends Controller
             // Filtrer par date si fourni
             if ($startDate) {
                 $reservations = $reservations->filter(function ($reservation) use ($startDate) {
-                    return $reservation->start_date >= $startDate;
+                    return $reservation->start_date->gte($startDate);
                 });
             }
 
             if ($endDate) {
                 $reservations = $reservations->filter(function ($reservation) use ($endDate) {
-                    return $reservation->end_date <= $endDate;
+                    return $reservation->end_date->lte($endDate);
                 });
             }
 
