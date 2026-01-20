@@ -68,17 +68,20 @@ class StatisticsService
      */
     public function getMostUsedVehicles(int $limit = 10): array
     {
+        $cancelledStatus = ReservationStatus::CANCELLED;
+        
         $vehicles = Vehicle::select(
             'vehicles.id',
             'vehicles.brand',
             'vehicles.model',
             'vehicles.license_plate',
-            DB::raw('COUNT(CASE WHEN reservations.status != "' . ReservationStatus::CANCELLED . '" THEN 1 END) as reservation_count')
+            DB::raw('COUNT(CASE WHEN reservations.status != ? THEN 1 END) as reservation_count')
         )
         ->leftJoin('reservations', 'vehicles.id', '=', 'reservations.vehicle_id')
         ->groupBy('vehicles.id', 'vehicles.brand', 'vehicles.model', 'vehicles.license_plate')
         ->orderBy('reservation_count', 'desc')
         ->limit($limit)
+        ->addBinding($cancelledStatus, 'select')
         ->get();
 
         return $vehicles->map(function ($vehicle) {
@@ -107,17 +110,20 @@ class StatisticsService
 
         $totalDays = $startDate->diffInDays($endDate) + 1;
 
-        $vehicles = Vehicle::with(['reservations' => function ($query) use ($startDate, $endDate) {
-            $query->where('status', ReservationStatus::CONFIRMED)
-                ->where(function ($q) use ($startDate, $endDate) {
-                    $q->whereBetween('start_date', [$startDate, $endDate])
-                        ->orWhereBetween('end_date', [$startDate, $endDate])
-                        ->orWhere(function ($subQ) use ($startDate, $endDate) {
-                            $subQ->where('start_date', '<=', $startDate)
-                                ->where('end_date', '>=', $endDate);
-                        });
-                });
-        }])->get();
+        $vehicles = Vehicle::select('id', 'brand', 'model', 'license_plate')
+            ->with(['reservations' => function ($query) use ($startDate, $endDate) {
+                $query->select('id', 'vehicle_id', 'start_date', 'end_date')
+                    ->where('status', ReservationStatus::CONFIRMED)
+                    ->where(function ($q) use ($startDate, $endDate) {
+                        $q->whereBetween('start_date', [$startDate, $endDate])
+                            ->orWhereBetween('end_date', [$startDate, $endDate])
+                            ->orWhere(function ($subQ) use ($startDate, $endDate) {
+                                $subQ->where('start_date', '<=', $startDate)
+                                    ->where('end_date', '>=', $endDate);
+                            });
+                    });
+            }])
+            ->get();
 
         $result = [];
 
@@ -137,14 +143,13 @@ class StatisticsService
                 'brand' => $vehicle->brand,
                 'model' => $vehicle->model,
                 'license_plate' => $vehicle->license_plate,
-                'full_name' => $vehicle->full_name,
+                'full_name' => "{$vehicle->brand} {$vehicle->model}",
                 'occupied_days' => $occupiedDays,
                 'total_days' => $totalDays,
                 'occupancy_rate' => round($occupancyRate, 2),
             ];
         }
 
-        // Trier par taux d'occupation décroissant
         usort($result, function ($a, $b) {
             return $b['occupancy_rate'] <=> $a['occupancy_rate'];
         });

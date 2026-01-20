@@ -52,7 +52,6 @@ class ExportController extends Controller
         $status = $request->get('status');
 
         try {
-            // Filtrer au niveau SQL pour de meilleures performances
             $reservations = $this->reservationService->getForExport($startDate, $endDate, $status);
 
             $filename = 'reservations_' . date('Y-m-d_His') . '.csv';
