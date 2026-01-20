@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Web\AuthController;
+use App\Http\Controllers\Web\ClientController;
 use App\Http\Controllers\Web\ReservationController;
 use App\Http\Controllers\Web\UserController;
 use App\Http\Controllers\Web\VehicleController;
@@ -18,6 +19,14 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
+    
+    // Routes client (utilisateurs authentifiés)
+    Route::get('/vehicles', [ClientController::class, 'vehicles'])->name('client.vehicles');
+    Route::get('/reservations', [ClientController::class, 'reservations'])->name('client.reservations');
+    Route::get('/reservations/create', [ClientController::class, 'createReservation'])->name('client.reservations.create');
+    Route::post('/reservations', [ClientController::class, 'storeReservation'])->name('client.reservations.store');
+    Route::get('/reservations/{reservation}', [ClientController::class, 'showReservation'])->name('client.reservations.show');
+    Route::post('/reservations/{reservation}/cancel', [ClientController::class, 'cancelReservation'])->name('client.reservations.cancel');
     
     Route::prefix('admin')->middleware('can:access-admin')->group(function () {
         Route::get('/', function () {
