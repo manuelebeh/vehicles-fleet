@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use OpenApi\Attributes as OA;
 
 class VehicleController extends Controller
 {
@@ -23,6 +24,19 @@ class VehicleController extends Controller
     ) {
     }
 
+    #[OA\Get(
+        path: "/vehicles",
+        summary: "Liste des véhicules",
+        tags: ["Vehicles"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "per_page", in: "query", required: false, schema: new OA\Schema(type: "integer", default: 15)),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Liste des véhicules"),
+            new OA\Response(response: 401, description: "Non authentifié"),
+        ]
+    )]
     public function index(Request $request): JsonResponse
     {
         $perPage = $this->getPerPage($request);
@@ -31,6 +45,32 @@ class VehicleController extends Controller
         return VehicleResource::collection($vehicles)->response();
     }
 
+    #[OA\Post(
+        path: "/vehicles",
+        summary: "Créer un véhicule",
+        tags: ["Vehicles"],
+        security: [["bearerAuth" => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["brand", "model", "license_plate"],
+                properties: [
+                    new OA\Property(property: "brand", type: "string", example: "Toyota"),
+                    new OA\Property(property: "model", type: "string", example: "Corolla"),
+                    new OA\Property(property: "license_plate", type: "string", example: "AB-123-CD"),
+                    new OA\Property(property: "year", type: "integer", nullable: true, example: 2020),
+                    new OA\Property(property: "color", type: "string", nullable: true, example: "Rouge"),
+                    new OA\Property(property: "status", type: "string", enum: ["available", "maintenance", "out_of_service"], nullable: true),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: "Véhicule créé"),
+            new OA\Response(response: 401, description: "Non authentifié"),
+            new OA\Response(response: 403, description: "Accès non autorisé (admin uniquement)"),
+            new OA\Response(response: 422, description: "Erreur de validation"),
+        ]
+    )]
     public function store(VehicleRequest $request): JsonResponse
     {
         try {
@@ -56,12 +96,55 @@ class VehicleController extends Controller
         }
     }
 
+    #[OA\Get(
+        path: "/vehicles/{id}",
+        summary: "Afficher un véhicule",
+        tags: ["Vehicles"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer")),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Détails du véhicule"),
+            new OA\Response(response: 401, description: "Non authentifié"),
+            new OA\Response(response: 404, description: "Véhicule non trouvé"),
+        ]
+    )]
     public function show(Vehicle $vehicle): JsonResponse
     {
         $vehicle->load('reservations');
         return (new VehicleResource($vehicle))->response();
     }
 
+    #[OA\Put(
+        path: "/vehicles/{id}",
+        summary: "Mettre à jour un véhicule",
+        tags: ["Vehicles"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer")),
+        ],
+        requestBody: new OA\RequestBody(
+            required: false,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: "brand", type: "string", nullable: true),
+                    new OA\Property(property: "model", type: "string", nullable: true),
+                    new OA\Property(property: "license_plate", type: "string", nullable: true),
+                    new OA\Property(property: "year", type: "integer", nullable: true),
+                    new OA\Property(property: "color", type: "string", nullable: true),
+                    new OA\Property(property: "status", type: "string", enum: ["available", "maintenance", "out_of_service"], nullable: true),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: "Véhicule mis à jour"),
+            new OA\Response(response: 401, description: "Non authentifié"),
+            new OA\Response(response: 403, description: "Accès non autorisé (admin uniquement)"),
+            new OA\Response(response: 404, description: "Véhicule non trouvé"),
+            new OA\Response(response: 422, description: "Erreur de validation"),
+        ]
+    )]
     public function update(VehicleRequest $request, Vehicle $vehicle): JsonResponse
     {
         try {
@@ -87,6 +170,21 @@ class VehicleController extends Controller
         }
     }
 
+    #[OA\Delete(
+        path: "/vehicles/{id}",
+        summary: "Supprimer un véhicule",
+        tags: ["Vehicles"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer")),
+        ],
+        responses: [
+            new OA\Response(response: 204, description: "Véhicule supprimé"),
+            new OA\Response(response: 401, description: "Non authentifié"),
+            new OA\Response(response: 403, description: "Accès non autorisé (admin uniquement)"),
+            new OA\Response(response: 404, description: "Véhicule non trouvé"),
+        ]
+    )]
     public function destroy(Vehicle $vehicle): JsonResponse
     {
         try {
@@ -112,6 +210,16 @@ class VehicleController extends Controller
         }
     }
 
+    #[OA\Get(
+        path: "/vehicles/available",
+        summary: "Liste des véhicules disponibles",
+        tags: ["Vehicles"],
+        security: [["bearerAuth" => []]],
+        responses: [
+            new OA\Response(response: 200, description: "Liste des véhicules disponibles"),
+            new OA\Response(response: 401, description: "Non authentifié"),
+        ]
+    )]
     public function available(Request $request): JsonResponse
     {
         $vehicles = $this->vehicleService->getAvailable();
@@ -119,6 +227,30 @@ class VehicleController extends Controller
         return VehicleResource::collection($vehicles)->response();
     }
 
+    #[OA\Patch(
+        path: "/vehicles/{id}/status",
+        summary: "Mettre à jour le statut d'un véhicule",
+        tags: ["Vehicles"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer")),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["status"],
+                properties: [
+                    new OA\Property(property: "status", type: "string", enum: ["available", "maintenance", "out_of_service"]),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: "Statut mis à jour"),
+            new OA\Response(response: 401, description: "Non authentifié"),
+            new OA\Response(response: 403, description: "Accès non autorisé (admin uniquement)"),
+            new OA\Response(response: 422, description: "Transition de statut invalide"),
+        ]
+    )]
     public function updateStatus(UpdateStatusRequest $request, Vehicle $vehicle): JsonResponse
     {
         try {

@@ -15,6 +15,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use OpenApi\Attributes as OA;
 
 class UserController extends Controller
 {
@@ -25,6 +26,19 @@ class UserController extends Controller
     ) {
     }
 
+    #[OA\Get(
+        path: "/users",
+        summary: "Liste des utilisateurs",
+        tags: ["Users"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "per_page", in: "query", required: false, schema: new OA\Schema(type: "integer", default: 15)),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Liste des utilisateurs"),
+            new OA\Response(response: 401, description: "Non authentifié"),
+        ]
+    )]
     public function index(Request $request): JsonResponse
     {
         $perPage = $this->getPerPage($request);
@@ -33,6 +47,31 @@ class UserController extends Controller
         return UserResource::collection($users)->response();
     }
 
+    #[OA\Post(
+        path: "/users",
+        summary: "Créer un utilisateur",
+        tags: ["Users"],
+        security: [["bearerAuth" => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["email", "password", "password_confirmation"],
+                properties: [
+                    new OA\Property(property: "email", type: "string", format: "email"),
+                    new OA\Property(property: "password", type: "string", format: "password"),
+                    new OA\Property(property: "password_confirmation", type: "string", format: "password"),
+                    new OA\Property(property: "first_name", type: "string", nullable: true),
+                    new OA\Property(property: "last_name", type: "string", nullable: true),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: "Utilisateur créé"),
+            new OA\Response(response: 401, description: "Non authentifié"),
+            new OA\Response(response: 403, description: "Accès non autorisé"),
+            new OA\Response(response: 422, description: "Erreur de validation"),
+        ]
+    )]
     public function store(UserRequest $request): JsonResponse
     {
         try {
@@ -59,12 +98,54 @@ class UserController extends Controller
         }
     }
 
+    #[OA\Get(
+        path: "/users/{id}",
+        summary: "Afficher un utilisateur",
+        tags: ["Users"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer")),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Détails de l'utilisateur"),
+            new OA\Response(response: 401, description: "Non authentifié"),
+            new OA\Response(response: 403, description: "Accès non autorisé"),
+            new OA\Response(response: 404, description: "Utilisateur non trouvé"),
+        ]
+    )]
     public function show(User $user): JsonResponse
     {
         $user->load('roles', 'reservations');
         return (new UserResource($user))->response();
     }
 
+    #[OA\Put(
+        path: "/users/{id}",
+        summary: "Mettre à jour un utilisateur",
+        tags: ["Users"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer")),
+        ],
+        requestBody: new OA\RequestBody(
+            required: false,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: "email", type: "string", format: "email", nullable: true),
+                    new OA\Property(property: "password", type: "string", format: "password", nullable: true),
+                    new OA\Property(property: "first_name", type: "string", nullable: true),
+                    new OA\Property(property: "last_name", type: "string", nullable: true),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: "Utilisateur mis à jour"),
+            new OA\Response(response: 401, description: "Non authentifié"),
+            new OA\Response(response: 403, description: "Accès non autorisé"),
+            new OA\Response(response: 404, description: "Utilisateur non trouvé"),
+            new OA\Response(response: 422, description: "Erreur de validation"),
+        ]
+    )]
     public function update(UserRequest $request, User $user): JsonResponse
     {
         try {
@@ -91,6 +172,21 @@ class UserController extends Controller
         }
     }
 
+    #[OA\Delete(
+        path: "/users/{id}",
+        summary: "Supprimer un utilisateur",
+        tags: ["Users"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer")),
+        ],
+        responses: [
+            new OA\Response(response: 204, description: "Utilisateur supprimé"),
+            new OA\Response(response: 401, description: "Non authentifié"),
+            new OA\Response(response: 403, description: "Accès non autorisé (admin uniquement)"),
+            new OA\Response(response: 404, description: "Utilisateur non trouvé"),
+        ]
+    )]
     public function destroy(User $user): JsonResponse
     {
         $currentUser = auth()->user();
@@ -123,6 +219,31 @@ class UserController extends Controller
         }
     }
 
+    #[OA\Post(
+        path: "/users/{id}/roles",
+        summary: "Assigner un rôle à un utilisateur",
+        tags: ["Users"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer")),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["role_id"],
+                properties: [
+                    new OA\Property(property: "role_id", type: "integer", example: 1),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: "Rôle assigné"),
+            new OA\Response(response: 401, description: "Non authentifié"),
+            new OA\Response(response: 403, description: "Accès non autorisé (admin uniquement)"),
+            new OA\Response(response: 404, description: "Utilisateur ou rôle non trouvé"),
+            new OA\Response(response: 422, description: "Erreur de validation"),
+        ]
+    )]
     public function assignRole(AssignRoleRequest $request, User $user): JsonResponse
     {
         try {
