@@ -5,9 +5,13 @@ namespace App\Services;
 use App\Models\Role;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
 
 class RoleService
 {
+    private const CACHE_KEY_ALL_ROLES = 'roles:all';
+    private const CACHE_TTL = 3600; // 1 heure
+
     public function getAll(int $perPage = 15): LengthAwarePaginator
     {
         return Role::paginate($perPage);
@@ -15,7 +19,9 @@ class RoleService
 
     public function getAllWithoutPagination(): Collection
     {
-        return Role::all();
+        return Cache::remember(self::CACHE_KEY_ALL_ROLES, self::CACHE_TTL, function () {
+            return Role::all();
+        });
     }
 
     public function getById(int $id): ?Role
@@ -30,16 +36,33 @@ class RoleService
 
     public function create(array $data): Role
     {
-        return Role::create($data);
+        $role = Role::create($data);
+        $this->clearCache();
+        
+        return $role;
     }
 
     public function update(Role $role, array $data): bool
     {
-        return $role->update($data);
+        $result = $role->update($data);
+        $this->clearCache();
+        
+        return $result;
     }
 
     public function delete(Role $role): bool
     {
-        return $role->delete();
+        $result = $role->delete();
+        $this->clearCache();
+        
+        return $result;
+    }
+
+    /**
+     * Invalide le cache des rôles
+     */
+    private function clearCache(): void
+    {
+        Cache::forget(self::CACHE_KEY_ALL_ROLES);
     }
 }

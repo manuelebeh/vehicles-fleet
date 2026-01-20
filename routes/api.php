@@ -8,7 +8,9 @@ use App\Http\Controllers\VehicleController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
-    Route::post('/login', [AuthController::class, 'login']);
+    // Rate limiting strict pour protéger contre les attaques par force brute
+    Route::post('/login', [AuthController::class, 'login'])
+        ->middleware('throttle:5,1'); // 5 tentatives par minute
     
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
@@ -16,7 +18,8 @@ Route::prefix('auth')->group(function () {
     });
 });
 
-Route::middleware('auth:sanctum')->group(function () {
+// Rate limiting général pour les endpoints authentifiés
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     Route::apiResource('roles', RoleController::class);
     
     Route::apiResource('users', UserController::class);
