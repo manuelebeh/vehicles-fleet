@@ -1,5 +1,9 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
+import Select from '../../../Components/Select';
+import DateInput from '../../../Components/DateInput';
+import Textarea from '../../../Components/Textarea';
+import Button from '../../../Components/Button';
 
 export default function ReservationsEdit({ auth, reservation, users = [], vehicles = [], statuses = [] }) {
     const { data, setData, put, processing, errors } = useForm({
@@ -53,135 +57,81 @@ export default function ReservationsEdit({ auth, reservation, users = [], vehicl
                             <form onSubmit={handleSubmit}>
                                 <div className="space-y-6">
                                     {/* User */}
-                                    <div>
-                                        <label htmlFor="user_id" className="block text-sm font-medium text-gray-700">
-                                            Utilisateur
-                                        </label>
-                                        <select
-                                            id="user_id"
-                                            value={data.user_id}
-                                            onChange={(e) => setData('user_id', e.target.value)}
-                                            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 ${
-                                                errors.user_id ? 'border-red-500' : ''
-                                            }`}
-                                        >
-                                            <option value="">Sélectionner un utilisateur</option>
-                                            {users.map((user) => (
-                                                <option key={user.id} value={user.id}>
-                                                    {user.email} {user.first_name || user.last_name ? `(${user.first_name || ''} ${user.last_name || ''})`.trim() : ''}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {errors.user_id && (
-                                            <p className="mt-1 text-sm text-red-600">{errors.user_id}</p>
-                                        )}
-                                    </div>
+                                    <Select
+                                        id="user_id"
+                                        name="user_id"
+                                        label="Utilisateur"
+                                        value={data.user_id}
+                                        onChange={(e) => setData('user_id', e.target.value)}
+                                        error={errors.user_id}
+                                        placeholder="Sélectionner un utilisateur"
+                                        options={users.map((user) => ({
+                                            value: user.id,
+                                            label: `${user.email} ${user.first_name || user.last_name ? `(${user.first_name || ''} ${user.last_name || ''})`.trim() : ''}`,
+                                        }))}
+                                    />
 
                                     {/* Vehicle */}
-                                    <div>
-                                        <label htmlFor="vehicle_id" className="block text-sm font-medium text-gray-700">
-                                            Véhicule
-                                        </label>
-                                        <select
-                                            id="vehicle_id"
-                                            value={data.vehicle_id}
-                                            onChange={(e) => setData('vehicle_id', e.target.value)}
-                                            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 ${
-                                                errors.vehicle_id ? 'border-red-500' : ''
-                                            }`}
-                                        >
-                                            <option value="">Sélectionner un véhicule</option>
-                                            {vehicles.map((vehicle) => (
-                                                <option key={vehicle.id} value={vehicle.id}>
-                                                    {vehicle.brand} {vehicle.model} - {vehicle.license_plate}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {errors.vehicle_id && (
-                                            <p className="mt-1 text-sm text-red-600">{errors.vehicle_id}</p>
-                                        )}
-                                    </div>
+                                    <Select
+                                        id="vehicle_id"
+                                        name="vehicle_id"
+                                        label="Véhicule"
+                                        value={data.vehicle_id}
+                                        onChange={(e) => setData('vehicle_id', e.target.value)}
+                                        error={errors.vehicle_id}
+                                        placeholder="Sélectionner un véhicule"
+                                        options={vehicles.map((vehicle) => ({
+                                            value: vehicle.id,
+                                            label: `${vehicle.brand} ${vehicle.model} - ${vehicle.license_plate}`,
+                                        }))}
+                                    />
 
                                     {/* Start Date */}
-                                    <div>
-                                        <label htmlFor="start_date" className="block text-sm font-medium text-gray-700">
-                                            Date et heure de début
-                                        </label>
-                                        <input
-                                            type="datetime-local"
-                                            id="start_date"
-                                            value={data.start_date}
-                                            onChange={(e) => setData('start_date', e.target.value)}
-                                            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 ${
-                                                errors.start_date ? 'border-red-500' : ''
-                                            }`}
-                                        />
-                                        {errors.start_date && (
-                                            <p className="mt-1 text-sm text-red-600">{errors.start_date}</p>
-                                        )}
-                                    </div>
+                                    <DateInput
+                                        id="start_date"
+                                        name="start_date"
+                                        label="Date et heure de début"
+                                        type="datetime-local"
+                                        value={data.start_date}
+                                        onChange={(e) => setData('start_date', e.target.value)}
+                                        error={errors.start_date}
+                                    />
 
                                     {/* End Date */}
-                                    <div>
-                                        <label htmlFor="end_date" className="block text-sm font-medium text-gray-700">
-                                            Date et heure de fin
-                                        </label>
-                                        <input
-                                            type="datetime-local"
-                                            id="end_date"
-                                            value={data.end_date}
-                                            onChange={(e) => setData('end_date', e.target.value)}
-                                            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 ${
-                                                errors.end_date ? 'border-red-500' : ''
-                                            }`}
-                                        />
-                                        {errors.end_date && (
-                                            <p className="mt-1 text-sm text-red-600">{errors.end_date}</p>
-                                        )}
-                                    </div>
+                                    <DateInput
+                                        id="end_date"
+                                        name="end_date"
+                                        label="Date et heure de fin"
+                                        type="datetime-local"
+                                        value={data.end_date}
+                                        onChange={(e) => setData('end_date', e.target.value)}
+                                        error={errors.end_date}
+                                    />
 
                                     {/* Purpose */}
-                                    <div>
-                                        <label htmlFor="purpose" className="block text-sm font-medium text-gray-700">
-                                            Motif
-                                        </label>
-                                        <textarea
-                                            id="purpose"
-                                            value={data.purpose}
-                                            onChange={(e) => setData('purpose', e.target.value)}
-                                            rows={3}
-                                            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 ${
-                                                errors.purpose ? 'border-red-500' : ''
-                                            }`}
-                                        />
-                                        {errors.purpose && (
-                                            <p className="mt-1 text-sm text-red-600">{errors.purpose}</p>
-                                        )}
-                                    </div>
+                                    <Textarea
+                                        id="purpose"
+                                        name="purpose"
+                                        label="Motif"
+                                        value={data.purpose}
+                                        onChange={(e) => setData('purpose', e.target.value)}
+                                        error={errors.purpose}
+                                        rows={3}
+                                    />
 
                                     {/* Status */}
-                                    <div>
-                                        <label htmlFor="status" className="block text-sm font-medium text-gray-700">
-                                            Statut
-                                        </label>
-                                        <select
-                                            id="status"
-                                            value={data.status}
-                                            onChange={(e) => setData('status', e.target.value)}
-                                            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 ${
-                                                errors.status ? 'border-red-500' : ''
-                                            }`}
-                                        >
-                                            {statuses.map((status) => (
-                                                <option key={status} value={status}>
-                                                    {getStatusLabel(status)}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {errors.status && (
-                                            <p className="mt-1 text-sm text-red-600">{errors.status}</p>
-                                        )}
-                                    </div>
+                                    <Select
+                                        id="status"
+                                        name="status"
+                                        label="Statut"
+                                        value={data.status}
+                                        onChange={(e) => setData('status', e.target.value)}
+                                        error={errors.status}
+                                        options={statuses.map((status) => ({
+                                            value: status,
+                                            label: getStatusLabel(status),
+                                        }))}
+                                    />
 
                                     {/* Error général */}
                                     {errors.error && (
@@ -198,13 +148,12 @@ export default function ReservationsEdit({ auth, reservation, users = [], vehicl
                                         >
                                             Annuler
                                         </Link>
-                                        <button
+                                        <Button
                                             type="submit"
-                                            disabled={processing}
-                                            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                                            processing={processing}
                                         >
-                                            {processing ? 'Mise à jour...' : 'Mettre à jour'}
-                                        </button>
+                                            Mettre à jour
+                                        </Button>
                                     </div>
                                 </div>
                             </form>

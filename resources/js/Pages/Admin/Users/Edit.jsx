@@ -1,5 +1,7 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
+import Input from '../../../Components/Input';
+import Button from '../../../Components/Button';
 
 export default function UsersEdit({ auth, user, roles }) {
     const { data, setData, put, processing, errors } = useForm({
@@ -45,63 +47,39 @@ export default function UsersEdit({ auth, user, roles }) {
                             <form onSubmit={handleSubmit}>
                                 <div className="space-y-6">
                                     {/* Email */}
-                                    <div>
-                                        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                                            Email
-                                        </label>
-                                        <input
-                                            type="email"
-                                            id="email"
-                                            value={data.email}
-                                            onChange={(e) => setData('email', e.target.value)}
-                                            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 ${
-                                                errors.email ? 'border-red-500' : ''
-                                            }`}
-                                        />
-                                        {errors.email && (
-                                            <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-                                        )}
-                                    </div>
+                                    <Input
+                                        type="email"
+                                        id="email"
+                                        name="email"
+                                        label="Email"
+                                        value={data.email}
+                                        onChange={(e) => setData('email', e.target.value)}
+                                        error={errors.email}
+                                    />
 
                                     {/* First Name */}
-                                    <div>
-                                        <label htmlFor="first_name" className="block text-sm font-medium text-gray-700">
-                                            Prénom
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="first_name"
-                                            value={data.first_name}
-                                            onChange={(e) => setData('first_name', e.target.value)}
-                                            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 ${
-                                                errors.first_name ? 'border-red-500' : ''
-                                            }`}
-                                            maxLength={100}
-                                        />
-                                        {errors.first_name && (
-                                            <p className="mt-1 text-sm text-red-600">{errors.first_name}</p>
-                                        )}
-                                    </div>
+                                    <Input
+                                        type="text"
+                                        id="first_name"
+                                        name="first_name"
+                                        label="Prénom"
+                                        value={data.first_name}
+                                        onChange={(e) => setData('first_name', e.target.value)}
+                                        error={errors.first_name}
+                                        maxLength={100}
+                                    />
 
                                     {/* Last Name */}
-                                    <div>
-                                        <label htmlFor="last_name" className="block text-sm font-medium text-gray-700">
-                                            Nom
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="last_name"
-                                            value={data.last_name}
-                                            onChange={(e) => setData('last_name', e.target.value)}
-                                            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 ${
-                                                errors.last_name ? 'border-red-500' : ''
-                                            }`}
-                                            maxLength={100}
-                                        />
-                                        {errors.last_name && (
-                                            <p className="mt-1 text-sm text-red-600">{errors.last_name}</p>
-                                        )}
-                                    </div>
+                                    <Input
+                                        type="text"
+                                        id="last_name"
+                                        name="last_name"
+                                        label="Nom"
+                                        value={data.last_name}
+                                        onChange={(e) => setData('last_name', e.target.value)}
+                                        error={errors.last_name}
+                                        maxLength={100}
+                                    />
 
                                     {/* Roles */}
                                     <div>
@@ -148,13 +126,12 @@ export default function UsersEdit({ auth, user, roles }) {
                                         >
                                             Annuler
                                         </Link>
-                                        <button
+                                        <Button
                                             type="submit"
-                                            disabled={processing}
-                                            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                                            processing={processing}
                                         >
-                                            {processing ? 'Mise à jour...' : 'Mettre à jour'}
-                                        </button>
+                                            Mettre à jour
+                                        </Button>
                                     </div>
                                 </div>
                             </form>

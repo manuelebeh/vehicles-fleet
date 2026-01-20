@@ -1,5 +1,7 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
+import Select from '../../../Components/Select';
+import Button from '../../../Components/Button';
 
 export default function VehiclesShow({ auth, vehicle, statuses = [] }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -67,12 +69,12 @@ export default function VehiclesShow({ auth, vehicle, statuses = [] }) {
                                     >
                                         Modifier
                                     </Link>
-                                    <button
+                                    <Button
                                         onClick={handleDelete}
-                                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                                        variant="danger"
                                     >
                                         Supprimer
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
 
@@ -145,34 +147,26 @@ export default function VehiclesShow({ auth, vehicle, statuses = [] }) {
                                     </h2>
                                     <form onSubmit={handleStatusUpdate} className="flex items-end gap-4">
                                         <div className="flex-1">
-                                            <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
-                                                Nouveau statut
-                                            </label>
-                                            <select
+                                            <Select
                                                 id="status"
+                                                name="status"
+                                                label="Nouveau statut"
                                                 value={data.status}
                                                 onChange={(e) => setData('status', e.target.value)}
-                                                className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 ${
-                                                    errors.status ? 'border-red-500' : ''
-                                                }`}
-                                            >
-                                                {statuses.map((status) => (
-                                                    <option key={status} value={status}>
-                                                        {getStatusLabel(status)}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            {errors.status && (
-                                                <p className="mt-1 text-sm text-red-600">{errors.status}</p>
-                                            )}
+                                                error={errors.status}
+                                                options={statuses.map((status) => ({
+                                                    value: status,
+                                                    label: getStatusLabel(status),
+                                                }))}
+                                            />
                                         </div>
-                                        <button
+                                        <Button
                                             type="submit"
-                                            disabled={processing || data.status === vehicle.status}
-                                            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                                            processing={processing}
+                                            disabled={data.status === vehicle.status}
                                         >
-                                            {processing ? 'Mise à jour...' : 'Mettre à jour'}
-                                        </button>
+                                            Mettre à jour
+                                        </Button>
                                     </form>
                                 </div>
 
