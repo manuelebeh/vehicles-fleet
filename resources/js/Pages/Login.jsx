@@ -1,10 +1,11 @@
 import { Head, Link, useForm } from '@inertiajs/react';
+import Input from '../Components/Input';
+import Button from '../Components/Button';
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
-        remember: false,
     });
 
     const submit = (e) => {
@@ -32,61 +33,31 @@ export default function Login({ status, canResetPassword }) {
                             </div>
                         )}
 
-                        <div className="rounded-md shadow-sm -space-y-px">
-                            <div>
-                                <label htmlFor="email" className="sr-only">
-                                    Email
-                                </label>
-                                <input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    autoComplete="email"
-                                    required
-                                    className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                                    placeholder="Adresse email"
-                                    value={data.email}
-                                    onChange={(e) => setData('email', e.target.value)}
-                                />
-                                {errors.email && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-                                )}
-                            </div>
-                            <div>
-                                <label htmlFor="password" className="sr-only">
-                                    Mot de passe
-                                </label>
-                                <input
-                                    id="password"
-                                    name="password"
-                                    type="password"
-                                    autoComplete="current-password"
-                                    required
-                                    className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                                    placeholder="Mot de passe"
-                                    value={data.password}
-                                    onChange={(e) => setData('password', e.target.value)}
-                                />
-                                {errors.password && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center">
-                                <input
-                                    id="remember"
-                                    name="remember"
-                                    type="checkbox"
-                                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                                    checked={data.remember}
-                                    onChange={(e) => setData('remember', e.target.checked)}
-                                />
-                                <label htmlFor="remember" className="ml-2 block text-sm text-gray-900">
-                                    Se souvenir de moi
-                                </label>
-                            </div>
+                        <div className="space-y-4">
+                            <Input
+                                type="email"
+                                id="email"
+                                name="email"
+                                label="Email"
+                                required
+                                value={data.email}
+                                onChange={(e) => setData('email', e.target.value)}
+                                error={errors.email}
+                                placeholder="Adresse email"
+                                autoComplete="email"
+                            />
+                            <Input
+                                type="password"
+                                id="password"
+                                name="password"
+                                label="Mot de passe"
+                                required
+                                value={data.password}
+                                onChange={(e) => setData('password', e.target.value)}
+                                error={errors.password}
+                                placeholder="Mot de passe"
+                                autoComplete="current-password"
+                            />
                         </div>
 
                         {errors.message && (
@@ -96,13 +67,13 @@ export default function Login({ status, canResetPassword }) {
                         )}
 
                         <div>
-                            <button
+                            <Button
                                 type="submit"
-                                disabled={processing}
-                                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                                processing={processing}
+                                className="w-full"
                             >
-                                {processing ? 'Connexion...' : 'Se connecter'}
-                            </button>
+                                Se connecter
+                            </Button>
                         </div>
                     </form>
                 </div>

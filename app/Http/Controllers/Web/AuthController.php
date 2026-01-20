@@ -43,7 +43,7 @@ class AuthController extends Controller
 
         $user->load('roles');
         
-        auth()->login($user, $request->boolean('remember'));
+        auth()->login($user);
 
         $request->session()->regenerate();
 
