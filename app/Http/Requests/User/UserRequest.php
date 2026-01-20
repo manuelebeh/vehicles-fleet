@@ -44,11 +44,10 @@ class UserRequest extends FormRequest
                 'max:255',
                 Rule::unique('users', 'email')->ignore($userId),
             ],
-            'password' => [
-                $isUpdate ? 'sometimes' : 'required',
-                'string',
-                'min:8',
-            ],
+            'password' => array_merge(
+                [$isUpdate ? 'sometimes' : 'required', 'string', 'min:8'],
+                $isUpdate ? [] : ['confirmed']
+            ),
             'first_name' => 'nullable|string|max:100',
             'last_name' => 'nullable|string|max:100',
         ];

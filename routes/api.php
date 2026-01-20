@@ -24,15 +24,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/users/{user}/roles', [UserController::class, 'removeRole']);
     Route::put('/users/{user}/roles', [UserController::class, 'syncRoles']);
     
-    Route::apiResource('vehicles', VehicleController::class);
     Route::get('/vehicles/available', [VehicleController::class, 'available']);
+    Route::apiResource('vehicles', VehicleController::class);
     Route::patch('/vehicles/{vehicle}/status', [VehicleController::class, 'updateStatus']);
     
+    Route::get('/reservations/available-vehicles', [ReservationController::class, 'availableVehicles']);
     Route::apiResource('reservations', ReservationController::class);
     Route::post('/reservations/{reservation}/cancel', [ReservationController::class, 'cancel']);
     Route::post('/reservations/{reservation}/confirm', [ReservationController::class, 'confirm']);
     Route::post('/reservations/{reservation}/complete', [ReservationController::class, 'complete']);
     Route::get('/users/{user}/reservations', [ReservationController::class, 'byUser']);
     Route::get('/vehicles/{vehicle}/reservations', [ReservationController::class, 'byVehicle']);
-    Route::get('/reservations/available-vehicles', [ReservationController::class, 'availableVehicles']);
 });

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Role extends Model
 {
+    /** @use HasFactory<\Database\Factories\RoleFactory> */
     use HasFactory;
 
     /**

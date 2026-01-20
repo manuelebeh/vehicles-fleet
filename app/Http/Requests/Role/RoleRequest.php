@@ -19,15 +19,12 @@ class RoleRequest extends FormRequest
         $roleId = $this->route('role')->id ?? null;
         $isUpdate = $this->isMethod('PUT') || $this->isMethod('PATCH');
 
+        $nameRules = $isUpdate 
+            ? ['sometimes', 'required', 'string', 'max:50', Rule::unique('roles', 'name')->ignore($roleId)]
+            : ['required', 'string', 'max:50', 'unique:roles,name'];
+
         return [
-            'name' => [
-                $isUpdate ? 'sometimes|required' : 'required',
-                'string',
-                'max:50',
-                $isUpdate 
-                    ? Rule::unique('roles', 'name')->ignore($roleId)
-                    : 'unique:roles,name',
-            ],
+            'name' => $nameRules,
             'display_name' => 'nullable|string|max:100',
             'description' => 'nullable|string',
         ];
