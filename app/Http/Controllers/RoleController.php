@@ -33,6 +33,7 @@ class RoleController extends Controller
 
     public function show(Role $role): JsonResponse
     {
+        $role->load('users');
         return response()->json($role);
     }
 

@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AssignRoleRequest;
+use App\Http\Requests\RemoveRoleRequest;
+use App\Http\Requests\SyncRolesRequest;
 use App\Http\Requests\UserRequest;
 use App\Models\Role;
 use App\Models\User;
@@ -55,12 +58,8 @@ class UserController extends Controller
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }
 
-    public function assignRole(Request $request, User $user): JsonResponse
+    public function assignRole(AssignRoleRequest $request, User $user): JsonResponse
     {
-        $request->validate([
-            'role_id' => 'required|exists:roles,id',
-        ]);
-
         $role = Role::findOrFail($request->role_id);
         $this->userService->assignRole($user, $role);
         $user->load('roles');
@@ -68,12 +67,8 @@ class UserController extends Controller
         return response()->json($user);
     }
 
-    public function removeRole(Request $request, User $user): JsonResponse
+    public function removeRole(RemoveRoleRequest $request, User $user): JsonResponse
     {
-        $request->validate([
-            'role_id' => 'required|exists:roles,id',
-        ]);
-
         $role = Role::findOrFail($request->role_id);
         $this->userService->removeRole($user, $role);
         $user->load('roles');
@@ -81,13 +76,8 @@ class UserController extends Controller
         return response()->json($user);
     }
 
-    public function syncRoles(Request $request, User $user): JsonResponse
+    public function syncRoles(SyncRolesRequest $request, User $user): JsonResponse
     {
-        $request->validate([
-            'role_ids' => 'required|array',
-            'role_ids.*' => 'exists:roles,id',
-        ]);
-
         $this->userService->syncRoles($user, $request->role_ids);
         $user->load('roles');
 

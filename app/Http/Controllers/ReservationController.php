@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AvailableVehiclesRequest;
 use App\Http\Requests\ReservationRequest;
 use App\Models\Reservation;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Services\ReservationService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -130,13 +132,8 @@ class ReservationController extends Controller
         return response()->json($reservations);
     }
 
-    public function availableVehicles(Request $request): JsonResponse
+    public function availableVehicles(AvailableVehiclesRequest $request): JsonResponse
     {
-        $request->validate([
-            'start_date' => 'required|date|after_or_equal:now',
-            'end_date' => 'required|date|after:start_date',
-        ]);
-
         $startDate = Carbon::parse($request->start_date);
         $endDate = Carbon::parse($request->end_date);
 
