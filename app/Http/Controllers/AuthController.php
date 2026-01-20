@@ -6,9 +6,12 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Resources\UserResource;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 use OpenApi\Attributes as OA;
 
 class AuthController extends Controller
@@ -16,6 +19,66 @@ class AuthController extends Controller
     public function __construct(
         protected AuthService $authService
     ) {
+    }
+
+    public function create(): InertiaResponse
+    {
+        return Inertia::render('Login');
+    }
+
+    public function store(LoginRequest $request): RedirectResponse
+    {
+        $user = $this->authService->login(
+            $request->email,
+            $request->password
+        );
+
+        if (!$user) {
+            Log::warning('Failed login attempt', [
+                'email' => $request->email,
+                'ip' => $request->ip(),
+            ]);
+
+            return back()->withErrors([
+                'email' => 'Les identifiants fournis ne correspondent à aucun compte.',
+            ])->onlyInput('email');
+        }
+
+        $user->load('roles');
+        
+        auth()->login($user, $request->boolean('remember'));
+
+        $request->session()->regenerate();
+
+        Log::info('User logged in', [
+            'user_id' => $user->id,
+            'email' => $user->email,
+            'ip' => $request->ip(),
+        ]);
+
+        if ($user->hasRole('admin')) {
+            return redirect()->intended(route('admin.index'));
+        }
+
+        return redirect()->intended(route('index'));
+    }
+
+    public function destroy(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        
+        if ($user) {
+            Log::info('User logged out', [
+                'user_id' => $user->id,
+                'ip' => $request->ip(),
+            ]);
+        }
+
+        auth()->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('index');
     }
 
     #[OA\Post(
@@ -47,7 +110,8 @@ class AuthController extends Controller
             new OA\Response(response: 422, description: "Erreur de validation"),
         ]
     )]
-    public function login(LoginRequest $request): JsonResponse
+    
+    public function loginApi(LoginRequest $request): JsonResponse
     {
         $user = $this->authService->login(
             $request->email,
@@ -98,7 +162,8 @@ class AuthController extends Controller
             new OA\Response(response: 401, description: "Non authentifié"),
         ]
     )]
-    public function logout(Request $request): JsonResponse
+
+    public function logoutApi(Request $request): JsonResponse
     {
         try {
             $user = $request->user();
@@ -142,6 +207,7 @@ class AuthController extends Controller
             new OA\Response(response: 401, description: "Non authentifié"),
         ]
     )]
+
     public function me(Request $request): JsonResponse
     {
         $user = $request->user();

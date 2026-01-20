@@ -12,11 +12,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
     // Rate limiting strict pour protéger contre les attaques par force brute
-    Route::post('/login', [AuthController::class, 'login'])
+    Route::post('/login', [AuthController::class, 'loginApi'])
         ->middleware('throttle:5,1'); // 5 tentatives par minute
     
     Route::middleware('auth:sanctum')->group(function () {
-        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::post('/logout', [AuthController::class, 'logoutApi']);
         Route::get('/me', [AuthController::class, 'me']);
     });
 });
