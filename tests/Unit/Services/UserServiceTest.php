@@ -24,12 +24,12 @@ class UserServiceTest extends TestCase
     {
         $data = [
             'email' => 'test@example.com',
-            'password' => 'password123',
             'first_name' => 'John',
             'last_name' => 'Doe',
         ];
 
-        $user = $this->service->create($data);
+        $result = $this->service->create($data);
+        $user = $result['user'];
 
         $this->assertDatabaseHas('users', [
             'email' => 'test@example.com',
@@ -37,6 +37,8 @@ class UserServiceTest extends TestCase
             'last_name' => 'Doe',
         ]);
         $this->assertNotNull($user->id);
+        $this->assertNotNull($result['password']);
+        $this->assertEquals(12, strlen($result['password']));
     }
 
     public function test_update_user_updates_user_data(): void

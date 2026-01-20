@@ -6,6 +6,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Str;
 
 class UserService
 {
@@ -29,9 +30,34 @@ class UserService
         return User::where('email', $email)->first();
     }
 
-    public function create(array $data): User
+    public function generatePassword(int $length = 12): string
     {
-        return User::create($data);
+        return Str::random($length);
+    }
+
+    public function create(array $data): array
+    {
+        $generatedPassword = $this->generatePassword();
+        $data['password'] = $generatedPassword;
+        
+        $user = User::create($data);
+        
+        return [
+            'user' => $user,
+            'password' => $generatedPassword,
+        ];
+    }
+
+    public function regeneratePassword(User $user): array
+    {
+        $generatedPassword = $this->generatePassword();
+        $user->password = $generatedPassword;
+        $user->save();
+        
+        return [
+            'user' => $user,
+            'password' => $generatedPassword,
+        ];
     }
 
     public function update(User $user, array $data): bool

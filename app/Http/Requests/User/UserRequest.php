@@ -44,10 +44,11 @@ class UserRequest extends FormRequest
                 'max:255',
                 Rule::unique('users', 'email')->ignore($userId),
             ],
-            'password' => array_merge(
-                [$isUpdate ? 'sometimes' : 'required', 'string', 'min:8'],
-                $isUpdate ? [] : ['confirmed']
-            ),
+            'password' => [
+                $isUpdate ? 'sometimes' : 'prohibited',
+                'string',
+                'min:8',
+            ],
             'first_name' => 'nullable|string|max:100',
             'last_name' => 'nullable|string|max:100',
         ];
@@ -59,7 +60,6 @@ class UserRequest extends FormRequest
             'email.required' => 'L\'email est obligatoire.',
             'email.email' => 'L\'email doit être une adresse email valide.',
             'email.unique' => 'Cet email est déjà utilisé.',
-            'password.required' => 'Le mot de passe est obligatoire.',
             'password.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
             'first_name.max' => 'Le prénom ne peut pas dépasser 100 caractères.',
             'last_name.max' => 'Le nom ne peut pas dépasser 100 caractères.',
