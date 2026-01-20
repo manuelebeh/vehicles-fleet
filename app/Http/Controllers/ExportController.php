@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\ReservationService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -23,7 +24,7 @@ class ExportController extends Controller
         tags: ["Export"],
         security: [["bearerAuth" => []]],
         parameters: [
-            new OA\Parameter(name: "format", in: "query", required: false, schema: new OA\Schema(type: "string", enum: ["csv", "excel"], default: "csv")),
+            new OA\Parameter(name: "format", in: "query", required: false, schema: new OA\Schema(type: "string", enum: ["csv"], default: "csv"), description: "Format d'export (actuellement seul CSV est supporté)"),
             new OA\Parameter(name: "start_date", in: "query", required: false, schema: new OA\Schema(type: "string", format: "date")),
             new OA\Parameter(name: "end_date", in: "query", required: false, schema: new OA\Schema(type: "string", format: "date")),
             new OA\Parameter(name: "status", in: "query", required: false, schema: new OA\Schema(type: "string")),
@@ -38,7 +39,6 @@ class ExportController extends Controller
     {
         $user = $request->user();
         
-        // Seul un admin peut exporter toutes les réservations
         if (!$user || !$user->hasRole('admin')) {
             return response()->json([
                 'message' => 'Accès non autorisé. Seuls les administrateurs peuvent exporter les réservations.',
@@ -46,32 +46,12 @@ class ExportController extends Controller
         }
 
         $format = $request->get('format', 'csv');
-        $startDate = $request->get('start_date');
-        $endDate = $request->get('end_date');
+        $startDate = $request->get('start_date') ? Carbon::parse($request->get('start_date'))->startOfDay() : null;
+        $endDate = $request->get('end_date') ? Carbon::parse($request->get('end_date'))->endOfDay() : null;
         $status = $request->get('status');
 
         try {
-            $reservations = $this->reservationService->getAllWithoutPagination();
-
-            // Filtrer par date si fourni
-            if ($startDate) {
-                $reservations = $reservations->filter(function ($reservation) use ($startDate) {
-                    return $reservation->start_date >= $startDate;
-                });
-            }
-
-            if ($endDate) {
-                $reservations = $reservations->filter(function ($reservation) use ($endDate) {
-                    return $reservation->end_date <= $endDate;
-                });
-            }
-
-            // Filtrer par statut si fourni
-            if ($status) {
-                $reservations = $reservations->filter(function ($reservation) use ($status) {
-                    return $reservation->status === $status;
-                });
-            }
+            $reservations = $this->reservationService->getForExport($startDate, $endDate, $status);
 
             $filename = 'reservations_' . date('Y-m-d_His') . '.csv';
 
@@ -107,10 +87,8 @@ class ExportController extends Controller
         return response()->stream(function () use ($reservations) {
             $file = fopen('php://output', 'w');
 
-            // Ajouter BOM pour Excel UTF-8
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
 
-            // En-têtes
             fputcsv($file, [
                 'ID',
                 'Utilisateur',
@@ -125,7 +103,6 @@ class ExportController extends Controller
                 'Mis à jour le',
             ], ';');
 
-            // Données
             foreach ($reservations as $reservation) {
                 fputcsv($file, [
                     $reservation->id,

@@ -56,7 +56,6 @@ class ImportController extends Controller
     {
         $user = $request->user();
         
-        // Seul un admin peut importer des véhicules
         if (!$user || !$user->hasRole('admin')) {
             return response()->json([
                 'message' => 'Accès non autorisé. Seuls les administrateurs peuvent importer des véhicules.',
@@ -74,16 +73,25 @@ class ImportController extends Controller
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
+        $file = null;
+        $handle = null;
+        
         try {
             $file = $request->file('file');
             $handle = fopen($file->getRealPath(), 'r');
             
+            if (!$handle) {
+                return response()->json([
+                    'message' => 'Impossible d\'ouvrir le fichier.',
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+            
             // Ignore la première ligne (en-têtes)
             $headers = fgetcsv($handle, 1000, ';');
-            if (!$headers) {
+            if (!$headers || count($headers) < 3) {
                 fclose($handle);
                 return response()->json([
-                    'message' => 'Le fichier CSV est vide ou invalide.',
+                    'message' => 'Le fichier CSV est vide ou invalide. Format attendu : brand;model;license_plate;year;color;status',
                 ], Response::HTTP_UNPROCESSABLE_ENTITY);
             }
 
@@ -108,7 +116,6 @@ class ImportController extends Controller
                     'status' => trim($row[5] ?? 'available'),
                 ];
 
-                // Validation des données
                 $rowValidator = Validator::make($data, [
                     'brand' => 'required|string|max:100',
                     'model' => 'required|string|max:100',
@@ -133,8 +140,6 @@ class ImportController extends Controller
                 }
             }
 
-            fclose($handle);
-
             Log::info('Vehicles imported', [
                 'imported' => $imported,
                 'failed' => $failed,
@@ -157,6 +162,10 @@ class ImportController extends Controller
                 'message' => 'Une erreur est survenue lors de l\'import des véhicules.',
                 'error' => $e->getMessage(),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        } finally {
+            if ($handle && is_resource($handle)) {
+                fclose($handle);
+            }
         }
     }
 }
