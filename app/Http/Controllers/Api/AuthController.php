@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Resources\UserResource;
 use App\Services\AuthService;
@@ -47,7 +48,8 @@ class AuthController extends Controller
             new OA\Response(response: 422, description: "Erreur de validation"),
         ]
     )]
-    public function login(LoginRequest $request): JsonResponse
+    
+    public function loginApi(LoginRequest $request): JsonResponse
     {
         $user = $this->authService->login(
             $request->email,
@@ -98,7 +100,8 @@ class AuthController extends Controller
             new OA\Response(response: 401, description: "Non authentifié"),
         ]
     )]
-    public function logout(Request $request): JsonResponse
+
+    public function logoutApi(Request $request): JsonResponse
     {
         try {
             $user = $request->user();
@@ -142,6 +145,7 @@ class AuthController extends Controller
             new OA\Response(response: 401, description: "Non authentifié"),
         ]
     )]
+
     public function me(Request $request): JsonResponse
     {
         $user = $request->user();

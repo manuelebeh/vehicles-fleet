@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\User\AssignRoleRequest;
 use App\Http\Requests\User\RemoveRoleRequest;
 use App\Http\Requests\User\SyncRolesRequest;
@@ -75,7 +76,9 @@ class UserController extends Controller
     public function store(UserRequest $request): JsonResponse
     {
         try {
-            $user = $this->userService->create($request->validated());
+            $result = $this->userService->create($request->validated());
+            $user = $result['user'];
+            $generatedPassword = $result['password'];
             $user->load('roles');
 
             Log::info('User created', [
@@ -84,7 +87,10 @@ class UserController extends Controller
                 'created_by' => auth()->id(),
             ]);
 
-            return (new UserResource($user))->response()->setStatusCode(Response::HTTP_CREATED);
+            return response()->json([
+                'user' => new UserResource($user),
+                'password' => $generatedPassword,
+            ], Response::HTTP_CREATED);
         } catch (\Exception $e) {
             Log::error('Error creating user', [
                 'error' => $e->getMessage(),
