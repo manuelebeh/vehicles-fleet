@@ -87,6 +87,13 @@ class RoleController extends Controller
 
     public function destroy(Role $role): JsonResponse
     {
+        $user = auth()->user();
+        if (!$user || !$user->hasRole('admin')) {
+            return response()->json([
+                'message' => 'Accès non autorisé.',
+            ], Response::HTTP_FORBIDDEN);
+        }
+
         try {
             $roleId = $role->id;
             $this->roleService->delete($role);

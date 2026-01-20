@@ -90,7 +90,7 @@ class ReservationRequest extends FormRequest
                 $startDate = \Carbon\Carbon::parse($this->start_date);
                 $endDate = \Carbon\Carbon::parse($this->end_date);
 
-                if ($endDate->diffInHours($startDate) < 1) {
+                if (abs($endDate->diffInMinutes($startDate)) < 60) {
                     $validator->errors()->add(
                         'end_date',
                         'La durée de la réservation doit être d\'au moins 1 heure.'

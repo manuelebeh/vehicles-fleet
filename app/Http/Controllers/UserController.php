@@ -93,6 +93,13 @@ class UserController extends Controller
 
     public function destroy(User $user): JsonResponse
     {
+        $currentUser = auth()->user();
+        if (!$currentUser || !$currentUser->hasRole('admin')) {
+            return response()->json([
+                'message' => 'Accès non autorisé.',
+            ], Response::HTTP_FORBIDDEN);
+        }
+
         try {
             $userId = $user->id;
             $this->userService->delete($user);
