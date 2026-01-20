@@ -54,6 +54,22 @@ class ReservationService
     public function create(array $data): Reservation
     {
         return DB::transaction(function () use ($data) {
+            $vehicle = Vehicle::findOrFail($data['vehicle_id']);
+            $startDate = Carbon::parse($data['start_date']);
+            $endDate = Carbon::parse($data['end_date']);
+
+            if (!$vehicle->isAvailable()) {
+                throw new \RuntimeException('Le véhicule n\'est pas disponible.');
+            }
+
+            if (!$this->checkAvailability($vehicle, $startDate, $endDate)) {
+                throw new \RuntimeException('Le véhicule est déjà réservé pour cette période.');
+            }
+
+            if (!isset($data['status'])) {
+                $data['status'] = 'pending';
+            }
+
             $reservation = Reservation::create($data);
             $reservation->load(['user', 'vehicle']);
 
@@ -64,6 +80,30 @@ class ReservationService
     public function update(Reservation $reservation, array $data): bool
     {
         return DB::transaction(function () use ($reservation, $data) {
+            $vehicle = $reservation->vehicle;
+
+            if (isset($data['vehicle_id']) && $data['vehicle_id'] != $reservation->vehicle_id) {
+                $vehicle = Vehicle::findOrFail($data['vehicle_id']);
+            }
+
+            if (isset($data['start_date']) || isset($data['end_date'])) {
+                $startDate = isset($data['start_date'])
+                    ? Carbon::parse($data['start_date'])
+                    : $reservation->start_date;
+                $endDate = isset($data['end_date'])
+                    ? Carbon::parse($data['end_date'])
+                    : $reservation->end_date;
+
+                if ($reservation->isConfirmed() && !$this->checkAvailability(
+                    $vehicle,
+                    $startDate,
+                    $endDate,
+                    $reservation->id
+                )) {
+                    throw new \RuntimeException('Le véhicule est déjà réservé pour cette période.');
+                }
+            }
+
             return $reservation->update($data);
         });
     }
@@ -80,7 +120,20 @@ class ReservationService
 
     public function confirm(Reservation $reservation): bool
     {
-        return $reservation->update(['status' => 'confirmed']);
+        return DB::transaction(function () use ($reservation) {
+            $vehicle = $reservation->vehicle;
+
+            if (!$this->checkAvailability(
+                $vehicle,
+                $reservation->start_date,
+                $reservation->end_date,
+                $reservation->id
+            )) {
+                throw new \RuntimeException('Le véhicule est déjà réservé pour cette période.');
+            }
+
+            return $reservation->update(['status' => 'confirmed']);
+        });
     }
 
     public function complete(Reservation $reservation): bool
@@ -96,14 +149,7 @@ class ReservationService
     ): bool {
         $query = Reservation::where('vehicle_id', $vehicle->id)
             ->where('status', 'confirmed')
-            ->where(function ($q) use ($startDate, $endDate) {
-                $q->whereBetween('start_date', [$startDate, $endDate])
-                    ->orWhereBetween('end_date', [$startDate, $endDate])
-                    ->orWhere(function ($subQ) use ($startDate, $endDate) {
-                        $subQ->where('start_date', '<=', $startDate)
-                            ->where('end_date', '>=', $endDate);
-                    });
-            });
+            ->where($this->getOverlapQuery($startDate, $endDate));
 
         if ($excludeReservationId) {
             $query->where('id', '!=', $excludeReservationId);
@@ -115,19 +161,24 @@ class ReservationService
     public function getAvailableVehicles(Carbon $startDate, Carbon $endDate): Collection
     {
         $conflictingReservationIds = Reservation::where('status', 'confirmed')
-            ->where(function ($q) use ($startDate, $endDate) {
-                $q->whereBetween('start_date', [$startDate, $endDate])
-                    ->orWhereBetween('end_date', [$startDate, $endDate])
-                    ->orWhere(function ($subQ) use ($startDate, $endDate) {
-                        $subQ->where('start_date', '<=', $startDate)
-                            ->where('end_date', '>=', $endDate);
-                    });
-            })
+            ->where($this->getOverlapQuery($startDate, $endDate))
             ->pluck('vehicle_id')
             ->unique();
 
         return Vehicle::where('status', 'available')
             ->whereNotIn('id', $conflictingReservationIds)
             ->get();
+    }
+
+    private function getOverlapQuery(Carbon $startDate, Carbon $endDate): \Closure
+    {
+        return function ($q) use ($startDate, $endDate) {
+            $q->whereBetween('start_date', [$startDate, $endDate])
+                ->orWhereBetween('end_date', [$startDate, $endDate])
+                ->orWhere(function ($subQ) use ($startDate, $endDate) {
+                    $subQ->where('start_date', '<=', $startDate)
+                        ->where('end_date', '>=', $endDate);
+                });
+        };
     }
 }
