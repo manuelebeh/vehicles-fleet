@@ -131,9 +131,9 @@ class StatisticsService
             $occupiedDays = 0;
 
             foreach ($vehicle->reservations as $reservation) {
-                $reservationStart = max($reservation->start_date, $startDate);
-                $reservationEnd = min($reservation->end_date, $endDate);
-                $occupiedDays += $reservationStart->diffInDays($reservationEnd) + 1;
+                $reservationStart = max($reservation->start_date, $startDate)->startOfDay();
+                $reservationEnd = min($reservation->end_date, $endDate)->endOfDay();
+                $occupiedDays += (int) ($reservationStart->diffInDays($reservationEnd) + 1);
             }
 
             $occupancyRate = $totalDays > 0 ? ($occupiedDays / $totalDays) * 100 : 0;
@@ -146,12 +146,12 @@ class StatisticsService
                 'full_name' => "{$vehicle->brand} {$vehicle->model}",
                 'occupied_days' => $occupiedDays,
                 'total_days' => $totalDays,
-                'occupancy_rate' => round($occupancyRate, 2),
+                'occupancy_rate' => (float) round($occupancyRate, 2),
             ];
         }
 
         usort($result, function ($a, $b) {
-            return $b['occupancy_rate'] <=> $a['occupancy_rate'];
+            return (float) $b['occupancy_rate'] <=> (float) $a['occupancy_rate'];
         });
 
         return $result;

@@ -39,7 +39,6 @@ class ExportController extends Controller
     {
         $user = $request->user();
         
-        // Seul un admin peut exporter toutes les réservations
         if (!$user || !$user->hasRole('admin')) {
             return response()->json([
                 'message' => 'Accès non autorisé. Seuls les administrateurs peuvent exporter les réservations.',
@@ -47,8 +46,8 @@ class ExportController extends Controller
         }
 
         $format = $request->get('format', 'csv');
-        $startDate = $request->get('start_date') ? Carbon::parse($request->get('start_date')) : null;
-        $endDate = $request->get('end_date') ? Carbon::parse($request->get('end_date')) : null;
+        $startDate = $request->get('start_date') ? Carbon::parse($request->get('start_date'))->startOfDay() : null;
+        $endDate = $request->get('end_date') ? Carbon::parse($request->get('end_date'))->endOfDay() : null;
         $status = $request->get('status');
 
         try {
@@ -88,10 +87,8 @@ class ExportController extends Controller
         return response()->stream(function () use ($reservations) {
             $file = fopen('php://output', 'w');
 
-            // Ajouter BOM pour Excel UTF-8
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
 
-            // En-têtes
             fputcsv($file, [
                 'ID',
                 'Utilisateur',
@@ -106,7 +103,6 @@ class ExportController extends Controller
                 'Mis à jour le',
             ], ';');
 
-            // Données
             foreach ($reservations as $reservation) {
                 fputcsv($file, [
                     $reservation->id,

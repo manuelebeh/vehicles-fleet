@@ -56,7 +56,6 @@ class ImportController extends Controller
     {
         $user = $request->user();
         
-        // Seul un admin peut importer des véhicules
         if (!$user || !$user->hasRole('admin')) {
             return response()->json([
                 'message' => 'Accès non autorisé. Seuls les administrateurs peuvent importer des véhicules.',
@@ -117,7 +116,6 @@ class ImportController extends Controller
                     'status' => trim($row[5] ?? 'available'),
                 ];
 
-                // Validation des données
                 $rowValidator = Validator::make($data, [
                     'brand' => 'required|string|max:100',
                     'model' => 'required|string|max:100',
@@ -165,7 +163,7 @@ class ImportController extends Controller
                 'error' => $e->getMessage(),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         } finally {
-            if ($handle) {
+            if ($handle && is_resource($handle)) {
                 fclose($handle);
             }
         }
