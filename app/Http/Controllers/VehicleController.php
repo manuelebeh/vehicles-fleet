@@ -6,12 +6,15 @@ use App\Http\Requests\Vehicle\UpdateStatusRequest;
 use App\Http\Requests\Vehicle\VehicleRequest;
 use App\Models\Vehicle;
 use App\Services\VehicleService;
+use App\Traits\HandlesPagination;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class VehicleController extends Controller
 {
+    use HandlesPagination;
+
     public function __construct(
         protected VehicleService $vehicleService
     ) {
@@ -19,7 +22,7 @@ class VehicleController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $perPage = $request->get('per_page', 15);
+        $perPage = $this->getPerPage($request);
         $vehicles = $this->vehicleService->getAll($perPage);
 
         return response()->json($vehicles);

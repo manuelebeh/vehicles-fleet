@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Exceptions\ReservationConflictException;
+use App\Exceptions\VehicleNotAvailableException;
 use App\Models\Reservation;
 use App\Models\User;
 use App\Models\Vehicle;
@@ -59,11 +61,11 @@ class ReservationService
             $endDate = Carbon::parse($data['end_date']);
 
             if (!$vehicle->isAvailable()) {
-                throw new \RuntimeException('Le véhicule n\'est pas disponible.');
+                throw new VehicleNotAvailableException('Le véhicule n\'est pas disponible.');
             }
 
             if (!$this->checkAvailability($vehicle, $startDate, $endDate)) {
-                throw new \RuntimeException('Le véhicule est déjà réservé pour cette période.');
+                throw new ReservationConflictException('Le véhicule est déjà réservé pour cette période.');
             }
 
             if (!isset($data['status'])) {
@@ -100,7 +102,7 @@ class ReservationService
                     $endDate,
                     $reservation->id
                 )) {
-                    throw new \RuntimeException('Le véhicule est déjà réservé pour cette période.');
+                    throw new ReservationConflictException('Le véhicule est déjà réservé pour cette période.');
                 }
             }
 
@@ -131,7 +133,7 @@ class ReservationService
                     $reservation->end_date,
                     $reservation->id
                 )) {
-                    throw new \RuntimeException('Le véhicule est déjà réservé pour cette période.');
+                    throw new ReservationConflictException('Le véhicule est déjà réservé pour cette période.');
                 }
 
                 return $reservation->update(['status' => $status]);

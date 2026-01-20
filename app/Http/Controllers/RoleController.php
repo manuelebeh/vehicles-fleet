@@ -5,12 +5,15 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Role\RoleRequest;
 use App\Models\Role;
 use App\Services\RoleService;
+use App\Traits\HandlesPagination;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class RoleController extends Controller
 {
+    use HandlesPagination;
+
     public function __construct(
         protected RoleService $roleService
     ) {
@@ -18,7 +21,7 @@ class RoleController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $perPage = $request->get('per_page', 15);
+        $perPage = $this->getPerPage($request);
         $roles = $this->roleService->getAll($perPage);
 
         return response()->json($roles);

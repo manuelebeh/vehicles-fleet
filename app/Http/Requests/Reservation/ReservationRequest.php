@@ -9,7 +9,27 @@ class ReservationRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        $user = $this->user();
+        $reservation = $this->route('reservation');
+        
+        if (!$user) {
+            return false;
+        }
+        
+        if ($user->hasRole('admin')) {
+            return true;
+        }
+        
+        if ($this->isMethod('POST')) {
+            $requestedUserId = $this->input('user_id');
+            return $requestedUserId && (int) $requestedUserId === $user->id;
+        }
+        
+        if ($reservation) {
+            return $reservation->user_id === $user->id;
+        }
+        
+        return false;
     }
 
     public function rules(): array

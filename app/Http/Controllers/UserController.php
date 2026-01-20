@@ -9,12 +9,15 @@ use App\Http\Requests\User\UserRequest;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\UserService;
+use App\Traits\HandlesPagination;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class UserController extends Controller
 {
+    use HandlesPagination;
+
     public function __construct(
         protected UserService $userService
     ) {
@@ -22,7 +25,7 @@ class UserController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $perPage = $request->get('per_page', 15);
+        $perPage = $this->getPerPage($request);
         $users = $this->userService->getAll($perPage);
 
         return response()->json($users);

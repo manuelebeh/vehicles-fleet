@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\ReservationConflictException;
+use App\Exceptions\VehicleNotAvailableException;
 use App\Http\Requests\Reservation\AvailableVehiclesRequest;
 use App\Http\Requests\Reservation\ReservationRequest;
 use App\Models\Reservation;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Services\ReservationService;
+use App\Traits\HandlesPagination;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,6 +19,8 @@ use Illuminate\Support\Facades\Log;
 
 class ReservationController extends Controller
 {
+    use HandlesPagination;
+
     public function __construct(
         protected ReservationService $reservationService
     ) {
@@ -23,7 +28,7 @@ class ReservationController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $perPage = $request->get('per_page', 15);
+        $perPage = $this->getPerPage($request);
         $reservations = $this->reservationService->getAll($perPage);
 
         return response()->json($reservations);
@@ -34,7 +39,7 @@ class ReservationController extends Controller
         try {
             $reservation = $this->reservationService->create($request->validated());
             return response()->json($reservation, Response::HTTP_CREATED);
-        } catch (\RuntimeException $e) {
+        } catch (ReservationConflictException|VehicleNotAvailableException $e) {
             return response()->json([
                 'message' => $e->getMessage(),
             ], Response::HTTP_CONFLICT);
@@ -61,7 +66,7 @@ class ReservationController extends Controller
         try {
             $this->reservationService->update($reservation, $request->validated());
             return $this->refreshReservation($reservation);
-        } catch (\RuntimeException $e) {
+        } catch (ReservationConflictException|VehicleNotAvailableException $e) {
             return response()->json([
                 'message' => $e->getMessage(),
             ], Response::HTTP_CONFLICT);
@@ -96,7 +101,7 @@ class ReservationController extends Controller
         try {
             $this->reservationService->confirm($reservation);
             return $this->refreshReservation($reservation);
-        } catch (\RuntimeException $e) {
+        } catch (ReservationConflictException|VehicleNotAvailableException $e) {
             return response()->json([
                 'message' => $e->getMessage(),
             ], Response::HTTP_CONFLICT);
@@ -118,7 +123,7 @@ class ReservationController extends Controller
 
     public function byUser(User $user, Request $request): JsonResponse
     {
-        $perPage = $request->get('per_page', 15);
+        $perPage = $this->getPerPage($request);
         $reservations = $this->reservationService->getByUser($user, $perPage);
 
         return response()->json($reservations);
@@ -126,7 +131,7 @@ class ReservationController extends Controller
 
     public function byVehicle(Vehicle $vehicle, Request $request): JsonResponse
     {
-        $perPage = $request->get('per_page', 15);
+        $perPage = $this->getPerPage($request);
         $reservations = $this->reservationService->getByVehicle($vehicle, $perPage);
 
         return response()->json($reservations);
