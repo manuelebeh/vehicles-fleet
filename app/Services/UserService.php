@@ -6,7 +6,6 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Hash;
 
 class UserService
 {
@@ -32,19 +31,11 @@ class UserService
 
     public function create(array $data): User
     {
-        if (isset($data['password'])) {
-            $data['password'] = Hash::make($data['password']);
-        }
-
         return User::create($data);
     }
 
     public function update(User $user, array $data): bool
     {
-        if (isset($data['password'])) {
-            $data['password'] = Hash::make($data['password']);
-        }
-
         return $user->update($data);
     }
 
