@@ -1,4 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
+import FlashMessages from '../Components/FlashMessages';
 
 export default function AppLayout({ children, auth }) {
     return (
@@ -18,12 +19,20 @@ export default function AppLayout({ children, auth }) {
                                 {auth?.user && (
                                     <>
                                         {auth.user.roles?.includes('admin') && (
-                                            <Link
-                                                href="/admin"
-                                                className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none focus:text-gray-900 transition duration-150 ease-in-out"
-                                            >
-                                                Administration
-                                            </Link>
+                                            <>
+                                                <Link
+                                                    href="/admin"
+                                                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none focus:text-gray-900 transition duration-150 ease-in-out"
+                                                >
+                                                    Administration
+                                                </Link>
+                                                <Link
+                                                    href="/admin/users"
+                                                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none focus:text-gray-900 transition duration-150 ease-in-out"
+                                                >
+                                                    Utilisateurs
+                                                </Link>
+                                            </>
                                         )}
                                     </>
                                 )}
@@ -54,7 +63,12 @@ export default function AppLayout({ children, auth }) {
                         </div>
                     </div>
                 </nav>
-                <main>{children}</main>
+                <main>
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                        <FlashMessages />
+                    </div>
+                    {children}
+                </main>
             </div>
         </>
     );

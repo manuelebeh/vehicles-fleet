@@ -58,20 +58,19 @@ class UserTest extends TestCase
         $response = $this->actingAs($admin, 'sanctum')
             ->postJson('/api/users', [
                 'email' => 'newuser@example.com',
-                'password' => 'password123',
-                'password_confirmation' => 'password123',
                 'first_name' => 'John',
                 'last_name' => 'Doe',
             ]);
 
         $response->assertStatus(201)
             ->assertJsonStructure([
-                'data' => [
+                'user' => [
                     'id',
                     'email',
                     'first_name',
                     'last_name',
                 ],
+                'password',
             ]);
 
         $this->assertDatabaseHas('users', [
@@ -268,9 +267,7 @@ class UserTest extends TestCase
         $admin = $this->createAdmin();
 
         $response = $this->actingAs($admin, 'sanctum')
-            ->postJson('/api/users', [
-                'password' => 'password123',
-            ]);
+            ->postJson('/api/users', []);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['email']);
@@ -284,15 +281,13 @@ class UserTest extends TestCase
         $response = $this->actingAs($admin, 'sanctum')
             ->postJson('/api/users', [
                 'email' => 'existing@example.com',
-                'password' => 'password123',
-                'password_confirmation' => 'password123',
             ]);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['email']);
     }
 
-    public function test_create_user_requires_password_confirmation(): void
+    public function test_create_user_prohibits_password(): void
     {
         $admin = $this->createAdmin();
 
@@ -304,5 +299,61 @@ class UserTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['password']);
+    }
+
+    public function test_admin_can_regenerate_user_password(): void
+    {
+        $admin = $this->createAdmin();
+        $user = User::factory()->create([
+            'password' => Hash::make('oldpassword'),
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->post("/admin/users/{$user->id}/regenerate-password");
+
+        $response->assertRedirect(route('admin.users.show', $user));
+        $response->assertSessionHas('success');
+        $response->assertSessionHas('generated_password');
+        $response->assertSessionHas('user_email', $user->email);
+
+        $user->refresh();
+        $this->assertNotTrue(Hash::check('oldpassword', $user->password));
+        $this->assertEquals(12, strlen(session('generated_password')));
+    }
+
+    public function test_employee_cannot_regenerate_user_password(): void
+    {
+        $employee = $this->createEmployee();
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($employee)
+            ->post("/admin/users/{$user->id}/regenerate-password");
+
+        $response->assertStatus(403);
+    }
+
+    public function test_regenerate_password_requires_authentication(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->post("/admin/users/{$user->id}/regenerate-password");
+
+        $response->assertRedirect('/login');
+    }
+
+    public function test_regenerate_password_generates_new_password(): void
+    {
+        $admin = $this->createAdmin();
+        $user = User::factory()->create([
+            'password' => Hash::make('oldpassword'),
+        ]);
+        $oldPasswordHash = $user->password;
+
+        $response = $this->actingAs($admin)
+            ->post("/admin/users/{$user->id}/regenerate-password");
+
+        $user->refresh();
+        $this->assertNotEquals($oldPasswordHash, $user->password);
+        $this->assertTrue(Hash::check(session('generated_password'), $user->password));
     }
 }

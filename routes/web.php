@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Web\AuthController;
+use App\Http\Controllers\Web\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -20,5 +21,22 @@ Route::middleware('auth')->group(function () {
         Route::get('/', function () {
             return Inertia::render('Admin/Index');
         })->name('admin.index');
+        
+        // Routes pour la gestion des utilisateurs
+        Route::resource('users', UserController::class)->names([
+            'index' => 'admin.users.index',
+            'create' => 'admin.users.create',
+            'store' => 'admin.users.store',
+            'show' => 'admin.users.show',
+            'edit' => 'admin.users.edit',
+            'update' => 'admin.users.update',
+            'destroy' => 'admin.users.destroy',
+        ]);
+        
+        Route::post('/users/{user}/regenerate-password', [UserController::class, 'regeneratePassword'])->name('admin.users.regenerate-password');
+        
+        // Routes pour la gestion des rôles des utilisateurs
+        Route::post('/users/{user}/roles', [UserController::class, 'assignRole'])->name('admin.users.roles.assign');
+        Route::post('/users/{user}/roles/remove', [UserController::class, 'removeRole'])->name('admin.users.roles.remove');
     });
 });
