@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\ReservationStatus;
+use App\Exceptions\InvalidStatusTransitionException;
 use App\Exceptions\ReservationConflictException;
 use App\Exceptions\VehicleNotAvailableException;
 use App\Models\Reservation;
@@ -48,7 +50,7 @@ class ReservationService
     public function getActiveByVehicle(Vehicle $vehicle): Collection
     {
         return Reservation::where('vehicle_id', $vehicle->id)
-            ->whereIn('status', ['pending', 'confirmed'])
+            ->whereIn('status', [ReservationStatus::PENDING, ReservationStatus::CONFIRMED])
             ->orderBy('start_date', 'asc')
             ->get();
     }
@@ -69,7 +71,7 @@ class ReservationService
             }
 
             if (!isset($data['status'])) {
-                $data['status'] = 'pending';
+                $data['status'] = ReservationStatus::PENDING;
             }
 
             $reservation = Reservation::create($data);
@@ -117,13 +119,25 @@ class ReservationService
 
     public function updateStatus(Reservation $reservation, string $status): bool
     {
-        $validStatuses = ['pending', 'confirmed', 'cancelled', 'completed'];
-        
-        if (!in_array($status, $validStatuses)) {
+        if (!ReservationStatus::isValid($status)) {
             throw new \InvalidArgumentException("Le statut '{$status}' n'est pas valide.");
         }
 
-        if ($status === 'confirmed') {
+        $currentStatus = $reservation->status;
+
+        if (!ReservationStatus::isValidTransition($currentStatus, $status)) {
+            $validTransitions = ReservationStatus::validTransitions($currentStatus);
+            $transitionsList = empty($validTransitions) 
+                ? 'aucune' 
+                : implode(', ', $validTransitions);
+            
+            throw new InvalidStatusTransitionException(
+                "Impossible de passer de '{$currentStatus}' à '{$status}'. " .
+                "Transitions valides depuis '{$currentStatus}': {$transitionsList}."
+            );
+        }
+
+        if ($status === ReservationStatus::CONFIRMED) {
             return DB::transaction(function () use ($reservation, $status) {
                 $vehicle = $reservation->vehicle;
 
@@ -145,17 +159,17 @@ class ReservationService
 
     public function cancel(Reservation $reservation): bool
     {
-        return $this->updateStatus($reservation, 'cancelled');
+        return $this->updateStatus($reservation, ReservationStatus::CANCELLED);
     }
 
     public function confirm(Reservation $reservation): bool
     {
-        return $this->updateStatus($reservation, 'confirmed');
+        return $this->updateStatus($reservation, ReservationStatus::CONFIRMED);
     }
 
     public function complete(Reservation $reservation): bool
     {
-        return $this->updateStatus($reservation, 'completed');
+        return $this->updateStatus($reservation, ReservationStatus::COMPLETED);
     }
 
     public function checkAvailability(
@@ -165,7 +179,7 @@ class ReservationService
         ?int $excludeReservationId = null
     ): bool {
         $query = Reservation::where('vehicle_id', $vehicle->id)
-            ->where('status', 'confirmed')
+            ->where('status', ReservationStatus::CONFIRMED)
             ->where($this->getOverlapQuery($startDate, $endDate));
 
         if ($excludeReservationId) {
@@ -177,12 +191,12 @@ class ReservationService
 
     public function getAvailableVehicles(Carbon $startDate, Carbon $endDate): Collection
     {
-        $conflictingReservationIds = Reservation::where('status', 'confirmed')
+        $conflictingReservationIds = Reservation::where('status', ReservationStatus::CONFIRMED)
             ->where($this->getOverlapQuery($startDate, $endDate))
             ->pluck('vehicle_id')
             ->unique();
 
-        return Vehicle::where('status', 'available')
+        return Vehicle::where('status', \App\Enums\VehicleStatus::AVAILABLE)
             ->whereNotIn('id', $conflictingReservationIds)
             ->get();
     }

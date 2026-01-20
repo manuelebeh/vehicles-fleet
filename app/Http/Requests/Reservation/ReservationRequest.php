@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Reservation;
 
+use App\Enums\ReservationStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -59,7 +60,7 @@ class ReservationRequest extends FormRequest
             'status' => [
                 'nullable',
                 'string',
-                Rule::in(['pending', 'confirmed', 'cancelled', 'completed']),
+                Rule::in(ReservationStatus::all()),
             ],
             'purpose' => 'nullable|string',
         ];

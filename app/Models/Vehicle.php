@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\VehicleStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -43,17 +44,17 @@ class Vehicle extends Model
 
     public function isAvailable(): bool
     {
-        return $this->status === 'available';
+        return $this->status === VehicleStatus::AVAILABLE;
     }
 
     public function isInMaintenance(): bool
     {
-        return $this->status === 'maintenance';
+        return $this->status === VehicleStatus::MAINTENANCE;
     }
 
     public function isOutOfService(): bool
     {
-        return $this->status === 'out_of_service';
+        return $this->status === VehicleStatus::OUT_OF_SERVICE;
     }
 
     /**

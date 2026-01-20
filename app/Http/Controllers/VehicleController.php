@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\InvalidStatusTransitionException;
 use App\Http\Requests\Vehicle\UpdateStatusRequest;
 use App\Http\Requests\Vehicle\VehicleRequest;
 use App\Http\Resources\VehicleResource;
@@ -133,6 +134,18 @@ class VehicleController extends Controller
             ]);
 
             return (new VehicleResource($vehicle))->response();
+        } catch (InvalidStatusTransitionException $e) {
+            Log::warning('Invalid status transition for vehicle', [
+                'error' => $e->getMessage(),
+                'vehicle_id' => $vehicle->id,
+                'current_status' => $vehicle->status,
+                'requested_status' => $request->status,
+                'updated_by' => auth()->id(),
+            ]);
+
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (\Exception $e) {
             Log::error('Error updating vehicle status', [
                 'error' => $e->getMessage(),

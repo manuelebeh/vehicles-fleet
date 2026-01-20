@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\InvalidStatusTransitionException;
 use App\Exceptions\ReservationConflictException;
 use App\Exceptions\VehicleNotAvailableException;
 use App\Http\Requests\Reservation\AvailableVehiclesRequest;
@@ -90,6 +91,10 @@ class ReservationController extends Controller
             return response()->json([
                 'message' => $e->getMessage(),
             ], Response::HTTP_CONFLICT);
+        } catch (InvalidStatusTransitionException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (\Exception $e) {
             Log::error('Erreur lors de la mise à jour de la réservation', [
                 'error' => $e->getMessage(),
@@ -154,6 +159,17 @@ class ReservationController extends Controller
             return response()->json([
                 'message' => $e->getMessage(),
             ], Response::HTTP_CONFLICT);
+        } catch (InvalidStatusTransitionException $e) {
+            Log::warning('Invalid status transition for reservation', [
+                'error' => $e->getMessage(),
+                'reservation_id' => $reservation->id,
+                'current_status' => $reservation->status,
+                'confirmed_by' => auth()->id(),
+            ]);
+
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
     }
 
