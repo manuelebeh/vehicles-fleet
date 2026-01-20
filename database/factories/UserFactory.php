@@ -24,21 +24,38 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'first_name' => fake()->firstName(),
+            'last_name' => fake()->lastName(),
         ];
     }
 
     /**
-     * Indicate that the model's email address should be unverified.
+     * Indicate that the user should be an admin.
      */
-    public function unverified(): static
+    public function admin(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
+        return $this->afterCreating(function ($user) {
+            $adminRole = \App\Models\Role::firstOrCreate(
+                ['name' => 'admin'],
+                ['display_name' => 'Administrateur', 'description' => 'Administrateur du système']
+            );
+            $user->roles()->attach($adminRole);
+        });
+    }
+
+    /**
+     * Indicate that the user should be an employee.
+     */
+    public function employee(): static
+    {
+        return $this->afterCreating(function ($user) {
+            $employeeRole = \App\Models\Role::firstOrCreate(
+                ['name' => 'employee'],
+                ['display_name' => 'Employé', 'description' => 'Employé de l\'entreprise']
+            );
+            $user->roles()->attach($employeeRole);
+        });
     }
 }
