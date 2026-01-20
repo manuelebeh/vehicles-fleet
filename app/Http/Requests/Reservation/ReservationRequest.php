@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Reservation;
 
+use App\Enums\ReservationStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -9,7 +10,27 @@ class ReservationRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        $user = $this->user();
+        $reservation = $this->route('reservation');
+        
+        if (!$user) {
+            return false;
+        }
+        
+        if ($user->hasRole('admin')) {
+            return true;
+        }
+        
+        if ($this->isMethod('POST')) {
+            $requestedUserId = $this->input('user_id');
+            return $requestedUserId && (int) $requestedUserId === $user->id;
+        }
+        
+        if ($reservation) {
+            return $reservation->user_id === $user->id;
+        }
+        
+        return false;
     }
 
     public function rules(): array
@@ -39,7 +60,7 @@ class ReservationRequest extends FormRequest
             'status' => [
                 'nullable',
                 'string',
-                Rule::in(['pending', 'confirmed', 'cancelled', 'completed']),
+                Rule::in(ReservationStatus::all()),
             ],
             'purpose' => 'nullable|string',
         ];
@@ -58,7 +79,7 @@ class ReservationRequest extends FormRequest
             'end_date.required' => 'La date de fin est obligatoire.',
             'end_date.date' => 'La date de fin doit être une date valide.',
             'end_date.after' => 'La date de fin doit être postérieure à la date de début.',
-            'status.in' => 'Le statut doit être : pending, confirmed, cancelled ou completed.',
+            'status.in' => 'Le statut doit être : ' . implode(', ', ReservationStatus::all()) . '.',
         ];
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Vehicle;
 
+use App\Enums\VehicleStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -9,7 +10,9 @@ class VehicleRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        $user = $this->user();
+        
+        return $user && $user->hasRole('admin');
     }
 
     public function rules(): array
@@ -45,7 +48,7 @@ class VehicleRequest extends FormRequest
             'status' => [
                 'nullable',
                 'string',
-                Rule::in(['available', 'maintenance', 'out_of_service']),
+                Rule::in(VehicleStatus::all()),
             ],
         ];
     }

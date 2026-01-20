@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\ReservationStatus;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -50,22 +52,22 @@ class Reservation extends Model
 
     public function isPending(): bool
     {
-        return $this->status === 'pending';
+        return $this->status === ReservationStatus::PENDING;
     }
 
     public function isConfirmed(): bool
     {
-        return $this->status === 'confirmed';
+        return $this->status === ReservationStatus::CONFIRMED;
     }
 
     public function isCancelled(): bool
     {
-        return $this->status === 'cancelled';
+        return $this->status === ReservationStatus::CANCELLED;
     }
 
     public function isCompleted(): bool
     {
-        return $this->status === 'completed';
+        return $this->status === ReservationStatus::COMPLETED;
     }
 
     /**
@@ -86,9 +88,9 @@ class Reservation extends Model
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function scopeConfirmed($query)
+    public function scopeConfirmed(Builder $query): Builder
     {
-        return $query->where('status', 'confirmed');
+        return $query->where('status', ReservationStatus::CONFIRMED);
     }
 
     /**
@@ -97,9 +99,9 @@ class Reservation extends Model
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function scopePending($query)
+    public function scopePending(Builder $query): Builder
     {
-        return $query->where('status', 'pending');
+        return $query->where('status', ReservationStatus::PENDING);
     }
 
     /**
@@ -108,8 +110,8 @@ class Reservation extends Model
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function scopeActive($query)
+    public function scopeActive(Builder $query): Builder
     {
-        return $query->whereIn('status', ['pending', 'confirmed']);
+        return $query->whereIn('status', [ReservationStatus::PENDING, ReservationStatus::CONFIRMED]);
     }
 }

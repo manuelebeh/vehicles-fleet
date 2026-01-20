@@ -8,7 +8,9 @@ class RemoveRoleRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        $user = $this->user();
+        
+        return $user && $user->hasRole('admin');
     }
 
     public function rules(): array

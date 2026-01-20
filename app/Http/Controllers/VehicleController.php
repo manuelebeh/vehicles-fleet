@@ -2,16 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\InvalidStatusTransitionException;
 use App\Http\Requests\Vehicle\UpdateStatusRequest;
 use App\Http\Requests\Vehicle\VehicleRequest;
+use App\Http\Resources\VehicleResource;
 use App\Models\Vehicle;
 use App\Services\VehicleService;
+use App\Traits\HandlesPagination;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
 
 class VehicleController extends Controller
 {
+    use HandlesPagination;
+
     public function __construct(
         protected VehicleService $vehicleService
     ) {
@@ -19,52 +25,137 @@ class VehicleController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $perPage = $request->get('per_page', 15);
+        $perPage = $this->getPerPage($request);
         $vehicles = $this->vehicleService->getAll($perPage);
 
-        return response()->json($vehicles);
+        return VehicleResource::collection($vehicles)->response();
     }
 
     public function store(VehicleRequest $request): JsonResponse
     {
-        $vehicle = $this->vehicleService->create($request->validated());
+        try {
+            $vehicle = $this->vehicleService->create($request->validated());
 
-        return response()->json($vehicle, Response::HTTP_CREATED);
+            Log::info('Vehicle created', [
+                'vehicle_id' => $vehicle->id,
+                'license_plate' => $vehicle->license_plate,
+                'created_by' => auth()->id(),
+            ]);
+
+            return (new VehicleResource($vehicle))->response()->setStatusCode(Response::HTTP_CREATED);
+        } catch (\Exception $e) {
+            Log::error('Error creating vehicle', [
+                'error' => $e->getMessage(),
+                'license_plate' => $request->license_plate,
+                'created_by' => auth()->id(),
+            ]);
+
+            return response()->json([
+                'message' => 'Une erreur est survenue lors de la création du véhicule.',
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     public function show(Vehicle $vehicle): JsonResponse
     {
         $vehicle->load('reservations');
-        return response()->json($vehicle);
+        return (new VehicleResource($vehicle))->response();
     }
 
     public function update(VehicleRequest $request, Vehicle $vehicle): JsonResponse
     {
-        $this->vehicleService->update($vehicle, $request->validated());
-        $vehicle->refresh();
+        try {
+            $this->vehicleService->update($vehicle, $request->validated());
+            $vehicle->refresh();
 
-        return response()->json($vehicle);
+            Log::info('Vehicle updated', [
+                'vehicle_id' => $vehicle->id,
+                'updated_by' => auth()->id(),
+            ]);
+
+            return (new VehicleResource($vehicle))->response();
+        } catch (\Exception $e) {
+            Log::error('Error updating vehicle', [
+                'error' => $e->getMessage(),
+                'vehicle_id' => $vehicle->id,
+                'updated_by' => auth()->id(),
+            ]);
+
+            return response()->json([
+                'message' => 'Une erreur est survenue lors de la mise à jour du véhicule.',
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     public function destroy(Vehicle $vehicle): JsonResponse
     {
-        $this->vehicleService->delete($vehicle);
+        try {
+            $vehicleId = $vehicle->id;
+            $this->vehicleService->delete($vehicle);
 
-        return response()->json(null, Response::HTTP_NO_CONTENT);
+            Log::info('Vehicle deleted', [
+                'vehicle_id' => $vehicleId,
+                'deleted_by' => auth()->id(),
+            ]);
+
+            return response()->json(null, Response::HTTP_NO_CONTENT);
+        } catch (\Exception $e) {
+            Log::error('Error deleting vehicle', [
+                'error' => $e->getMessage(),
+                'vehicle_id' => $vehicle->id,
+                'deleted_by' => auth()->id(),
+            ]);
+
+            return response()->json([
+                'message' => 'Une erreur est survenue lors de la suppression du véhicule.',
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     public function available(Request $request): JsonResponse
     {
         $vehicles = $this->vehicleService->getAvailable();
 
-        return response()->json($vehicles);
+        return VehicleResource::collection($vehicles)->response();
     }
 
     public function updateStatus(UpdateStatusRequest $request, Vehicle $vehicle): JsonResponse
     {
-        $this->vehicleService->updateStatus($vehicle, $request->status);
-        $vehicle->refresh();
+        try {
+            $oldStatus = $vehicle->status;
+            $this->vehicleService->updateStatus($vehicle, $request->status);
+            $vehicle->refresh();
 
-        return response()->json($vehicle);
+            Log::info('Vehicle status updated', [
+                'vehicle_id' => $vehicle->id,
+                'old_status' => $oldStatus,
+                'new_status' => $vehicle->status,
+                'updated_by' => auth()->id(),
+            ]);
+
+            return (new VehicleResource($vehicle))->response();
+        } catch (InvalidStatusTransitionException $e) {
+            Log::warning('Invalid status transition for vehicle', [
+                'error' => $e->getMessage(),
+                'vehicle_id' => $vehicle->id,
+                'current_status' => $vehicle->status,
+                'requested_status' => $request->status,
+                'updated_by' => auth()->id(),
+            ]);
+
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (\Exception $e) {
+            Log::error('Error updating vehicle status', [
+                'error' => $e->getMessage(),
+                'vehicle_id' => $vehicle->id,
+                'status' => $request->status,
+            ]);
+
+            return response()->json([
+                'message' => 'Une erreur est survenue lors de la mise à jour du statut.',
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 }

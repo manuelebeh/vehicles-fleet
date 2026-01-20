@@ -9,7 +9,27 @@ class UserRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        $user = $this->user();
+        $targetUser = $this->route('user');
+        
+        // Seul un admin peut créer/modifier des utilisateurs
+        // ou un utilisateur peut modifier son propre profil
+        if (!$user) {
+            return false;
+        }
+        
+        if ($this->isMethod('POST')) {
+            // Seul un admin peut créer des utilisateurs
+            return $user->hasRole('admin');
+        }
+        
+        if ($targetUser) {
+            // Un admin peut modifier n'importe quel utilisateur
+            // ou un utilisateur peut modifier son propre profil
+            return $user->hasRole('admin') || $user->id === $targetUser->id;
+        }
+        
+        return false;
     }
 
     public function rules(): array
