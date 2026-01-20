@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Vehicle;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateVehicleStatusRequest extends FormRequest
+class UpdateStatusRequest extends FormRequest
 {
     public function authorize(): bool
     {

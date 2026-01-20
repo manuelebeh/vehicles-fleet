@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\User;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class AssignRoleRequest extends FormRequest
+class RemoveRoleRequest extends FormRequest
 {
     public function authorize(): bool
     {

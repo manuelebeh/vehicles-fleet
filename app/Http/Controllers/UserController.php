@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\AssignRoleRequest;
-use App\Http\Requests\RemoveRoleRequest;
-use App\Http\Requests\SyncRolesRequest;
-use App\Http\Requests\UserRequest;
+use App\Http\Requests\User\AssignRoleRequest;
+use App\Http\Requests\User\RemoveRoleRequest;
+use App\Http\Requests\User\SyncRolesRequest;
+use App\Http\Requests\User\UserRequest;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\UserService;

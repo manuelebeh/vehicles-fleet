@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\AvailableVehiclesRequest;
-use App\Http\Requests\ReservationRequest;
+use App\Http\Requests\Reservation\AvailableVehiclesRequest;
+use App\Http\Requests\Reservation\ReservationRequest;
 use App\Models\Reservation;
 use App\Models\User;
 use App\Models\Vehicle;
